@@ -1,38 +1,48 @@
 const mongoose = require("mongoose");
+const { BOOKING_STATUS, CLEANING_STATUS, ROOM_TYPES, VALIDATION_MESSAGES } = require("../constants/constants");
 
 const roomSchema = new mongoose.Schema(
   {
     roomNumber: {
       type: String,
-      required: [true, "Please add a room number or ID"],
+      required: [true, VALIDATION_MESSAGES.ROOM.NUMBER_REQUIRED],
       unique: true,
       trim: true,
     },
     roomType: {
       type: String,
-      required: [true, "Please specify a room type"],
-      enum: ["Family", "Bachelor", "Tent", "VIP Room"],
-      default: "Family",
+      required: [true, VALIDATION_MESSAGES.ROOM.TYPE_REQUIRED],
+      enum: ROOM_TYPES,
+      default: ROOM_TYPES[0],
     },
     basePrice: {
       type: Number,
-      required: [true, "Please add a base price"],
+      required: [true, VALIDATION_MESSAGES.ROOM.PRICE_REQUIRED],
     },
     bookingStatus: {
       type: String,
-      required: [true, "Please add booking status"],
-      enum: ["Available", "Booked", "Reserved", "Maintenance"],
-      default: "Available",
+      required: [true, VALIDATION_MESSAGES.ROOM.BOOKING_STATUS_REQUIRED],
+      enum: Object.values(BOOKING_STATUS),
+      default: BOOKING_STATUS.AVAILABLE,
     },
     cleaningStatus: {
       type: String,
-      required: [true, "Please add cleaning status"],
-      enum: ["Clean", "Dirty", "Cleaning"],
-      default: "Clean",
+      required: [true, VALIDATION_MESSAGES.ROOM.CLEANING_STATUS_REQUIRED],
+      enum: Object.values(CLEANING_STATUS),
+      default: CLEANING_STATUS.CLEAN,
     },
-    status: {
+    isActive: {
       type: Boolean,
-      default: true, // true = active (on), false = inactive (off)
+      default: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    propertyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Property",
+      required: [true, VALIDATION_MESSAGES.ROOM.PROPERTY_REQUIRED],
     },
   },
   {

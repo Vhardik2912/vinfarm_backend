@@ -8,6 +8,11 @@ const customerProfileSchema = new mongoose.Schema(
       required: true,
       unique: true, // One-to-one mapping with User
     },
+    // remove roleid
+    roleId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Role",
+    },
     address: {
       type: String,
       default: "",
@@ -16,12 +21,17 @@ const customerProfileSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // remove bookingHistory
     bookingHistory: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Booking", // Reference to future booking collection
       },
     ],
+    status: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,

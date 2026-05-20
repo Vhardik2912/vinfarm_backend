@@ -2,8 +2,22 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const morgan = require("morgan");
-const mongoose = require("mongoose");
 const path = require("path");
+
+// ─── Import Routes ───────────────────────────────────────────
+const roleRoutes = require("./src/routes/roleRoutes");
+const staffRoutes = require("./src/routes/staffRoutes");
+const customerRoutes = require("./src/routes/customerRoutes");
+const roomRoutes = require("./src/routes/roomRoutes");
+const loginRoutes = require("./src/routes/loginRoutes");
+const userRoutes = require("./src/routes/userRoutes");
+const vehicleRoutes = require("./src/routes/vehicleRoutes");
+const driverRoutes = require("./src/routes/driverRoutes");
+const transportBookingRoutes = require("./src/routes/transportBookingRoutes");
+const maintenanceRoutes = require("./src/routes/maintenanceRoutes");
+const designationRoutes = require("./src/routes/designationRoutes");
+const bookingRoutes = require("./src/routes/bookingRoutes");
+const farmBookingRoutes = require("./src/routes/farmBookingRoutes");
 
 
 // Load env vars
@@ -23,28 +37,27 @@ if (process.env.NODE_ENV === "development") {
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 
-// ─── MongoDB Connection (Alternative: Direct in server.js) ───
-const runSeeders = require("./src/seeders");
-
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then((conn) => {
-    console.log(`🚀 MongoDB Connected: ${conn.connection.host}`);
-    // Run automated database seeders
-    runSeeders();
-  })
-  .catch((error) => {
-    console.error(`❌ MongoDB Connection Error: ${error.message}`);
-    process.exit(1);
-  });
+// ─── MongoDB Connection ──────────────────────────────────────
+const connectDB = require("./src/config/db");
+connectDB();
 
 // ─── Routes ──────────────────────────────────────────────────
-app.use("/api/roleRoutes", require("./src/routes/roleRoutes"));
-app.use("/api/staffRoutes", require("./src/routes/staffRoutes"));
-app.use("/api/customerRoutes", require("./src/routes/customerRoutes"));
-app.use("/api/roomRoutes", require("./src/routes/roomRoutes"));
-app.use("/api/loginRoutes", require("./src/login/loginRoutes"));
-app.use("/api/authRoutes", require("./src/login/loginRoutes"));
+app.use("/api/role", roleRoutes);
+app.use("/api/staff", staffRoutes);
+app.use("/api/customer", customerRoutes);
+app.use("/api/room", roomRoutes);
+app.use("/api/login", loginRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/vehicle", vehicleRoutes);
+app.use("/api/driver", driverRoutes);
+app.use("/api/transport-booking", transportBookingRoutes);
+app.use("/api/maintenance", maintenanceRoutes);
+app.use("/api/designation", designationRoutes);
+app.use("/api/booking", bookingRoutes);
+app.use("/api/farm-booking", farmBookingRoutes);
+
+const errorHandler = require("./src/middleware/errorHandler");
+app.use(errorHandler);
 
 // ─── Health Check Route ──────────────────────────────────────
 app.get("/", (req, res) => {

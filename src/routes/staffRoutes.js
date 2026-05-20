@@ -1,20 +1,15 @@
 const express = require("express");
 const upload = require("../middleware/uploadMiddleware");
-const {
-  getStaffs,
-  getStaff,
-  createStaff,
-  updateStaff,
-  deleteStaff,
-} = require("../controllers/staffController");
+const validate = require("../middleware/validate");
+const { createStaffSchema, updateStaffSchema } = require("../validations/validationSchemas");
+const { getStaffs, getStaff, createStaff, updateStaff, deleteStaff } = require("../controllers/staffController");
 
 const router = express.Router();
 
-// Using ONLY GET and POST HTTP Methods
-router.post("/post", upload.single("idProof"), createStaff);
 router.get("/get", getStaffs);
-router.post("/getid", getStaff);
-router.post("/put", upload.single("idProof"), updateStaff);
-router.post("/delete", deleteStaff);
+router.get("/getid/:id", getStaff);
+router.post("/post", upload.single("idProof"), validate(createStaffSchema), createStaff);
+router.put("/put/:id", upload.single("idProof"), validate(updateStaffSchema), updateStaff);
+router.delete("/delete/:id", deleteStaff);
 
 module.exports = router;

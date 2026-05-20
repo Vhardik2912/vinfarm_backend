@@ -2,6 +2,8 @@ const User = require("../models/User");
 const Role = require("../models/Role");
 const StaffProfile = require("../models/StaffProfile");
 const CustomerProfile = require("../models/CustomerProfile");
+const { catchAsync, successResponse } = require("../utils/responseHelper");
+const AppError = require("../utils/AppError");
 const fs = require("fs");
 const path = require("path");
 
@@ -18,53 +20,11 @@ const safeDeleteFile = (filePath) => {
 // @desc    Get all users (populates role + matching profile)
 // @route   GET /api/v1/users/get
 // @access  Public
-exports.getUsers = async (req, res, next) => {
-  try {
-    const users = await User.find().populate("role", "name status");
-    const populatedUsers = [];
+exports.getUsers = catchAsync("getUsers", async (req, res, next) => {
+  const users = await User.find({ isDeleted: false }).populate("role", "name isActive");
+  const populatedUsers = [];
 
-    for (let user of users) {
-      let profile = null;
-      if (user.role && user.role.name.toLowerCase() === "customer") {
-        profile = await CustomerProfile.findOne({ userId: user._id });
-      } else {
-        // Query StaffProfile, explicitly selecting the password field if needed (normally hidden)
-        profile = await StaffProfile.findOne({ userId: user._id });
-      }
-
-      populatedUsers.push({
-        ...user.toObject(),
-        profile: profile || null,
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      count: populatedUsers.length,
-      data: populatedUsers,
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// @desc    Get single user by ID (populates role + profile)
-// @route   POST /api/v1/users/getid
-// @access  Public
-exports.getUser = async (req, res, next) => {
-  try {
-    const id = req.params.id || req.body.id || req.query.id;
-
-    if (!id) {
-      return res.status(400).json({ success: false, message: "Please provide a user ID" });
-    }
-
-    const user = await User.findById(id).populate("role", "name status");
-
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
-
+  for (let user of users) {
     let profile = null;
     if (user.role && user.role.name.toLowerCase() === "customer") {
       profile = await CustomerProfile.findOne({ userId: user._id });
@@ -72,29 +32,59 @@ exports.getUser = async (req, res, next) => {
       profile = await StaffProfile.findOne({ userId: user._id });
     }
 
-    res.status(200).json({
-      success: true,
-      data: {
-        ...user.toObject(),
-        profile: profile || null,
-      },
+    populatedUsers.push({
+      ...user.toObject(),
+      profile: profile || null,
     });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
   }
-};
+
+  successResponse({
+    res,
+    data: populatedUsers,
+  });
+});
+
+// @desc    Get single user by ID (populates role + profile)
+// @route   POST /api/v1/users/getid
+// @access  Public
+exports.getUser = catchAsync("getUser", async (req, res, next) => {
+  const id = req.params.id || req.body.id || req.query.id;
+  if (!id) {
+    throw new AppError("Please provide a user ID", 400);
+  }
+
+  const user = await User.findOne({ _id: id, isDeleted: false }).populate("role", "name isActive");
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  let profile = null;
+  if (user.role && user.role.name.toLowerCase() === "customer") {
+    profile = await CustomerProfile.findOne({ userId: user._id });
+  } else {
+    profile = await StaffProfile.findOne({ userId: user._id });
+  }
+
+  successResponse({
+    res,
+    data: {
+      ...user.toObject(),
+      profile: profile || null,
+    },
+  });
+});
 
 // @desc    Create new user (with role-based profile routing)
 // @route   POST /api/v1/users/post
 // @access  Public
-exports.createUser = async (req, res, next) => {
+exports.createUser = catchAsync("createUser", async (req, res, next) => {
   try {
     const {
       name,
       email,
       number,
-      role: roleId,
-      status,
+      roleId: roleId,
+      isActive,
       // Staff profile fields
       password, // Password is only required for Staff roles
       joindate,
@@ -106,22 +96,19 @@ exports.createUser = async (req, res, next) => {
 
     // 1. Basic validation
     if (!name || !email || !number || !roleId) {
-      if (req.file) safeDeleteFile(`/uploads/${req.file.filename}`);
-      return res.status(400).json({ success: false, message: "Please provide all required user details" });
+      throw new AppError("Please provide all required user details", 400);
     }
 
     // 2. Check if email already exists
     const emailExists = await User.findOne({ email });
     if (emailExists) {
-      if (req.file) safeDeleteFile(`/uploads/${req.file.filename}`);
-      return res.status(400).json({ success: false, message: "Email is already registered" });
+      throw new AppError("Email is already registered", 400);
     }
 
     // 3. Find the user's role to determine profile type
     const roleDoc = await Role.findById(roleId);
     if (!roleDoc) {
-      if (req.file) safeDeleteFile(`/uploads/${req.file.filename}`);
-      return res.status(404).json({ success: false, message: "Selected role not found" });
+      throw new AppError("Selected role not found", 404);
     }
 
     const isCustomer = roleDoc.name.toLowerCase() === "customer";
@@ -129,21 +116,21 @@ exports.createUser = async (req, res, next) => {
     // 4. Validation checks based on role
     if (!isCustomer) {
       if (!password) {
-        if (req.file) safeDeleteFile(`/uploads/${req.file.filename}`);
-        return res.status(400).json({ success: false, message: "Please provide a password for Staff" });
+        throw new AppError("Please provide a password for Staff", 400);
       }
       if (!req.file) {
-        return res.status(400).json({ success: false, message: "Please upload an ID proof document for Staff" });
+        throw new AppError("Please upload an ID proof document for Staff", 400);
       }
     }
 
-    // 5. Create core User account (NO PASSWORD here!)
+    // 5. Create core User account
     const user = await User.create({
       name,
       email,
       number,
-      role: roleId,
-      status: status !== undefined ? status : true,
+      password: !isCustomer ? password : null,
+      roleId: roleId,
+      isActive: isActive !== undefined ? isActive : true,
     });
 
     let profile = null;
@@ -157,21 +144,17 @@ exports.createUser = async (req, res, next) => {
     } else {
       profile = await StaffProfile.create({
         userId: user._id,
-        password, // Save password in Staff Profile!
+        email,
         joindate,
         enddate: enddate || null,
         salary,
         idProof: `/uploads/${req.file.filename}`,
       });
-
-      // Exclude password from the returned profile object
-      const profileObj = profile.toObject();
-      delete profileObj.password;
-      profile = profileObj;
     }
 
-    res.status(201).json({
-      success: true,
+    successResponse({
+      res,
+      statusCode: 201,
       data: {
         ...user.toObject(),
         profile,
@@ -179,21 +162,21 @@ exports.createUser = async (req, res, next) => {
     });
   } catch (error) {
     if (req.file) safeDeleteFile(`/uploads/${req.file.filename}`);
-    res.status(400).json({ success: false, message: error.message });
+    throw error;
   }
-};
+});
 
 // @desc    Update user and their profile details
 // @route   POST /api/v1/users/put
 // @access  Public
-exports.updateUser = async (req, res, next) => {
+exports.updateUser = catchAsync("updateUser", async (req, res, next) => {
   try {
     const id = req.params.id || req.body.id;
     const {
       name,
       email,
       number,
-      status,
+      isActive,
       // Staff Profile fields
       password, // Password update for staff
       joindate,
@@ -204,21 +187,20 @@ exports.updateUser = async (req, res, next) => {
     } = req.body;
 
     if (!id) {
-      if (req.file) safeDeleteFile(`/uploads/${req.file.filename}`);
-      return res.status(400).json({ success: false, message: "Please provide a user ID" });
+      throw new AppError("Please provide a user ID", 400);
     }
 
     const user = await User.findById(id).populate("role");
     if (!user) {
-      if (req.file) safeDeleteFile(`/uploads/${req.file.filename}`);
-      return res.status(404).json({ success: false, message: "User not found" });
+      throw new AppError("User not found", 404);
     }
 
     // 1. Update Core User details
     user.name = name || user.name;
     user.email = email || user.email;
     user.number = number || user.number;
-    user.status = status !== undefined ? status : user.status;
+    user.isActive = isActive !== undefined ? isActive : user.isActive;
+    if (password) user.password = password;
     await user.save();
 
     let profile = null;
@@ -232,15 +214,14 @@ exports.updateUser = async (req, res, next) => {
         { new: true, upsert: true }
       );
     } else {
-      // For Staff: We retrieve first to check pre-save password updates correctly
       let staffProfile = await StaffProfile.findOne({ userId: user._id });
 
       if (!staffProfile) {
-        staffProfile = new StaffProfile({ userId: user._id });
+        staffProfile = new StaffProfile({ userId: user._id, email: user.email });
       }
 
       // Update staff profile fields
-      if (password) staffProfile.password = password;
+      if (email) staffProfile.email = email;
       if (joindate) staffProfile.joindate = joindate;
       if (enddate !== undefined) staffProfile.enddate = enddate === "" ? null : enddate;
       if (salary) staffProfile.salary = salary;
@@ -254,15 +235,11 @@ exports.updateUser = async (req, res, next) => {
       }
 
       await staffProfile.save();
-
-      // Exclude password from the returned profile object
-      const profileObj = staffProfile.toObject();
-      delete profileObj.password;
-      profile = profileObj;
+      profile = staffProfile;
     }
 
-    res.status(200).json({
-      success: true,
+    successResponse({
+      res,
       data: {
         ...user.toObject(),
         profile,
@@ -270,47 +247,31 @@ exports.updateUser = async (req, res, next) => {
     });
   } catch (error) {
     if (req.file) safeDeleteFile(`/uploads/${req.file.filename}`);
-    res.status(400).json({ success: false, message: error.message });
+    throw error;
   }
-};
+});
 
 // @desc    Delete user & their role profile (and files)
 // @route   POST /api/v1/users/delete
 // @access  Public
-exports.deleteUser = async (req, res, next) => {
-  try {
-    const id = req.params.id || req.body.id;
-
-    if (!id) {
-      return res.status(400).json({ success: false, message: "Please provide a user ID" });
-    }
-
-    const user = await User.findById(id).populate("role");
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
-
-    const isCustomer = user.role && user.role.name.toLowerCase() === "customer";
-
-    // Remove matching Profile & its files
-    if (isCustomer) {
-      await CustomerProfile.findOneAndDelete({ userId: user._id });
-    } else {
-      const staffProfile = await StaffProfile.findOne({ userId: user._id });
-      if (staffProfile) {
-        safeDeleteFile(staffProfile.idProof); // Cleanup file upload
-        await StaffProfile.findByIdAndDelete(staffProfile._id);
-      }
-    }
-
-    // Delete core user account
-    await User.findByIdAndDelete(user._id);
-
-    res.status(200).json({
-      success: true,
-      message: "User and role profile deleted successfully",
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+exports.deleteUser = catchAsync("deleteUser", async (req, res, next) => {
+  const id = req.params.id || req.body.id;
+  if (!id) {
+    throw new AppError("Please provide a user ID", 400);
   }
-};
+
+  const user = await User.findOne({ _id: id, isDeleted: false });
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  // Soft delete core user account
+  user.isDeleted = true;
+  user.isActive = false;
+  await user.save();
+
+  successResponse({
+    res,
+    message: "User deleted successfully (soft deleted)",
+  });
+});

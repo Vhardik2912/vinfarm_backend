@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
+const { VALIDATION_MESSAGES } = require("../constants/constants");
 
 const staffProfileSchema = new mongoose.Schema(
   {
@@ -9,46 +9,40 @@ const staffProfileSchema = new mongoose.Schema(
       required: true,
       unique: true, // One-to-one mapping with User
     },
-    password: {
-      type: String,
-      required: [true, "Please add a password for Staff login"],
-      minlength: 6,
-      select: false, // Hidden by default when querying staff profiles
+    // remove role id
+    roleId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Role",
     },
-    joindate: {
+    designationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Designation",
+      required: true,
+    },
+    joinDate: {
       type: Date,
-      required: [true, "Please add a join date"],
+      required: [true, VALIDATION_MESSAGES.STAFF.JOIN_DATE_REQUIRED],
     },
-    enddate: {
+    endDate: {
       type: Date,
       default: null,
     },
     salary: {
       type: Number,
-      required: [true, "Please add salary information"],
+      required: [true, VALIDATION_MESSAGES.STAFF.SALARY_REQUIRED],
     },
     idProof: {
       type: String, // Path of uploaded ID document
-      required: [true, "Please upload an ID proof document"],
+      required: [true, VALIDATION_MESSAGES.STAFF.ID_PROOF_REQUIRED],
+    },
+    status: {
+      type: Boolean,
+      default: true,
     },
   },
   {
     timestamps: true,
   }
 );
-
-// Encrypt password using bcrypt before saving
-staffProfileSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) {
-    next();
-  }
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-});
-
-// Compare entered password with hashed password
-staffProfileSchema.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
-};
 
 module.exports = mongoose.model("StaffProfile", staffProfileSchema);

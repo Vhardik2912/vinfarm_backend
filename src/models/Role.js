@@ -1,16 +1,25 @@
 const mongoose = require("mongoose");
+const { VALIDATION_MESSAGES } = require("../constants/constants");
 
 const roleSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Role name is required"],
+      required: [true, VALIDATION_MESSAGES.ROLE.NAME_REQUIRED],
       unique: true,
       trim: true,
     },
     status: {
       type: Boolean,
-      default: true, // true = active (on), false = inactive (off)
+      default: true,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {

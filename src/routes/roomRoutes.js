@@ -1,19 +1,14 @@
 const express = require("express");
-const {
-  getRooms,
-  getRoom,
-  createRoom,
-  updateRoom,
-  deleteRoom,
-} = require("../controllers/roomController");
+const validate = require("../middleware/validate");
+const { createRoomSchema, updateRoomSchema } = require("../validations/validationSchemas");
+const { getRooms, getRoom, createRoom, updateRoom, deleteRoom } = require("../controllers/roomController");
 
 const router = express.Router();
 
-// Using ONLY GET and POST HTTP Methods
-router.post("/post", createRoom);
 router.get("/get", getRooms);
-router.post("/getid", getRoom);
-router.post("/put", updateRoom);
-router.post("/delete", deleteRoom);
+router.get("/getid/:id", getRoom);
+router.post("/post", validate(createRoomSchema), createRoom);
+router.put("/put/:id", validate(updateRoomSchema), updateRoom);
+router.delete("/delete/:id", deleteRoom);
 
 module.exports = router;
