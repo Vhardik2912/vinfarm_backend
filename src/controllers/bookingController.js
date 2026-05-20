@@ -119,8 +119,6 @@ exports.createBooking = catchAsync("createBooking", async (req, res, next) => {
     customerId,
     roleId: roleId || customer.roleId,
     roomId,
-    roomNumber: room.roomNumber,
-    roomType: room.roomType,
     checkInDate: checkIn,
     checkOutDate: checkOut,
     numberOfGuests,

@@ -25,9 +25,9 @@ const formatUserResponse = (user, profile) => {
 // @route   POST /api/v1/login/register
 // @access  Public
 exports.registerCustomer = catchAsync("registerCustomer", async (req, res, next) => {
-  const { name, email, number, address } = req.body;
+  const { name, email, phone, countryCode, address } = req.body;
 
-  if (!name || !email || !number) {
+  if (!name || !email || !phone) {
     throw new AppError("Please provide name, email, and phone number", 400);
   }
 
@@ -47,7 +47,8 @@ exports.registerCustomer = catchAsync("registerCustomer", async (req, res, next)
   const user = await User.create({
     name,
     email,
-    number,
+    phone,
+    countryCode,
     roleId: customerRole._id,
     status: true,
   });
@@ -110,7 +111,7 @@ exports.loginStaff = catchAsync("loginStaff", async (req, res, next) => {
       throw new AppError(MESSAGES.ERROR.NOT_FOUND, HTTP_STATUS.UNAUTHORIZED);
     }
     // For customers, their registered phone number acts as their password/credential
-    isMatch = (password === user.number);
+    isMatch = (password === user.phone);
   } else {
     // Verify password from User model
     if (!user.password) {

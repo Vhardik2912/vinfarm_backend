@@ -82,7 +82,8 @@ exports.createUser = catchAsync("createUser", async (req, res, next) => {
     const {
       name,
       email,
-      number,
+      phone,
+      countryCode,
       roleId: roleId,
       isActive,
       // Staff profile fields
@@ -95,7 +96,7 @@ exports.createUser = catchAsync("createUser", async (req, res, next) => {
     } = req.body;
 
     // 1. Basic validation
-    if (!name || !email || !number || !roleId) {
+    if (!name || !email || !phone || !roleId) {
       throw new AppError("Please provide all required user details", 400);
     }
 
@@ -127,7 +128,8 @@ exports.createUser = catchAsync("createUser", async (req, res, next) => {
     const user = await User.create({
       name,
       email,
-      number,
+      phone,
+      countryCode,
       password: !isCustomer ? password : null,
       roleId: roleId,
       isActive: isActive !== undefined ? isActive : true,
@@ -175,7 +177,8 @@ exports.updateUser = catchAsync("updateUser", async (req, res, next) => {
     const {
       name,
       email,
-      number,
+      phone,
+      countryCode,
       isActive,
       // Staff Profile fields
       password, // Password update for staff
@@ -198,7 +201,8 @@ exports.updateUser = catchAsync("updateUser", async (req, res, next) => {
     // 1. Update Core User details
     user.name = name || user.name;
     user.email = email || user.email;
-    user.number = number || user.number;
+    user.phone = phone || user.phone;
+    if (countryCode !== undefined) user.countryCode = countryCode;
     user.isActive = isActive !== undefined ? isActive : user.isActive;
     if (password) user.password = password;
     await user.save();

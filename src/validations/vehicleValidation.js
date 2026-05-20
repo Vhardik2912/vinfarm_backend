@@ -33,20 +33,12 @@ const createFuelLogSchema = Joi.object({
   fuelQuantity: Joi.number().positive().required(),
   cost: Joi.number().min(0).required(),
   odometerReading: Joi.number().min(0).required(),
+  createdBy: Joi.string().optional().allow(null, ""),
 });
 
-const createMaintenanceLogSchema = Joi.object({
-  vehicleId: Joi.string().required(),
-  maintenanceDate: Joi.date().optional(),
-  description: Joi.string().required(),
-  cost: Joi.number().min(0).required(),
-  odometerReading: Joi.number().min(0).required(),
-  nextServiceOdometer: Joi.number().min(0).optional().allow(null),
-});
 
 module.exports = {
   createVehicleSchema,
   updateVehicleSchema,
   createFuelLogSchema,
-  createMaintenanceLogSchema,
 };

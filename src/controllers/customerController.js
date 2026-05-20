@@ -15,7 +15,7 @@ const formatCustomer = (profile) => {
     _id: user?._id || null,
     name: user?.name || "",
     email: user?.email || "",
-    number: user?.number || "",
+    phone: user?.phone || "",
     roleId: user?.roleId || null,
     status: user?.status ?? true,
     createdAt: user?.createdAt,
@@ -24,7 +24,6 @@ const formatCustomer = (profile) => {
       profileId: obj._id,
       address: obj.address,
       loyaltyPoints: obj.loyaltyPoints,
-      bookingHistory: obj.bookingHistory,
       createdAt: obj.createdAt,
       updatedAt: obj.updatedAt
     }
@@ -83,14 +82,13 @@ exports.createCustomer = catchAsync("createCustomer", async (req, res, next) => 
   const {
     name,
     email,
-    number,
-    roleId: roleId,
+    phone,
     status,
     address,
   } = req.body;
 
   // Validation
-  if (!name || !email || !number || !roleId) {
+  if (!name || !email || !phone) {
     throw new AppError("Please provide all required customer details", 400);
   }
 
@@ -100,18 +98,18 @@ exports.createCustomer = catchAsync("createCustomer", async (req, res, next) => 
     throw new AppError("Email is already registered", 400);
   }
 
-  // Verify role exists
-  const roleDoc = await Role.findById(roleId);
-  if (!roleDoc) {
-    throw new AppError("Selected role not found", 404);
+  // Find or create default "customer" role
+  let customerRole = await Role.findOne({ name: "customer" });
+  if (!customerRole) {
+    customerRole = await Role.create({ name: "customer", status: true });
   }
 
   // Create Core User account
   const user = await User.create({
     name,
     email,
-    number,
-    roleId: roleId,
+    phone,
+    roleId: customerRole._id,
     status: status !== undefined ? status : true,
   });
 
@@ -138,7 +136,7 @@ exports.updateCustomer = catchAsync("updateCustomer", async (req, res, next) => 
   const {
     name,
     email,
-    number,
+    phone,
     status,
     address,
     loyaltyPoints,
@@ -165,7 +163,7 @@ exports.updateCustomer = catchAsync("updateCustomer", async (req, res, next) => 
 
   user.name = name || user.name;
   user.email = email || user.email;
-  user.number = number || user.number;
+  user.phone = phone || user.phone;
   user.status = status !== undefined ? status : user.status;
   await user.save();
 

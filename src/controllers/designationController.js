@@ -38,7 +38,7 @@ exports.getDesignation = catchAsync("getDesignation", async (req, res, next) => 
 // @route   POST /api/designation/post
 // @access  Public
 exports.createDesignation = catchAsync("createDesignation", async (req, res, next) => {
-  const { name, status, isActive } = req.body;
+  const { name, isActive } = req.body;
 
   if (!name) {
     throw new AppError("Please provide a designation name", 400);
@@ -51,7 +51,6 @@ exports.createDesignation = catchAsync("createDesignation", async (req, res, nex
 
   const designation = await Designation.create({
     name,
-    status: status !== undefined ? status : true,
     isActive: isActive !== undefined ? isActive : true,
   });
 
@@ -77,10 +76,9 @@ exports.updateDesignation = catchAsync("updateDesignation", async (req, res, nex
     throw new AppError("Designation not found", 404);
   }
 
-  const { name, status, isActive } = req.body;
+  const { name, isActive } = req.body;
 
   designation.name = name || designation.name;
-  if (status !== undefined) designation.status = status;
   if (isActive !== undefined) designation.isActive = isActive;
 
   await designation.save();

@@ -9,11 +9,7 @@ const staffProfileSchema = new mongoose.Schema(
       required: true,
       unique: true, // One-to-one mapping with User
     },
-    // remove role id
-    roleId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Role",
-    },
+
     designationId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Designation",

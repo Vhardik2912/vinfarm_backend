@@ -30,9 +30,9 @@ const VALIDATION_MESSAGES = Object.freeze({
     NAME_REQUIRED: "Please add a name",
     EMAIL_REQUIRED: "Please add an email",
     EMAIL_VALID: "Please add a valid email",
-    NUMBER_REQUIRED: "Please add a phone number",
+    PHONE_REQUIRED: "Please add a phone number",
     ROLE_REQUIRED: "Please select a role",
-    COUNTRY_REQUIRED: "Please specify country name",
+    COUNTRY_CODE_REQUIRED: "Please specify country code",
   },
   STAFF: {
     EMAIL_REQUIRED: "Please add an email for Staff profile",
@@ -77,8 +77,6 @@ const VALIDATION_MESSAGES = Object.freeze({
   BOOKING: {
     CUSTOMER_REQUIRED: "Customer ID is required",
     ROOM_REQUIRED: "Room ID is required",
-    ROOM_NUMBER_REQUIRED: "Room number is required",
-    ROOM_TYPE_REQUIRED: "Room type is required",
     GUESTS_REQUIRED: "Number of guests is required",
     CHECKIN_REQUIRED: "Check-in date is required",
     CHECKOUT_REQUIRED: "Check-out date is required",

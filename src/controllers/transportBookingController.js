@@ -97,7 +97,7 @@ exports.createBooking = catchAsync("createBooking", async (req, res, next) => {
     if (end <= start) {
       throw new AppError("Return date-time must be after pickup date-time", 400);
     }
-    
+
     const diffTime = Math.abs(end - start);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Minimum 1 day
     totalPrice = diffDays * vehicle.pricePerDay;

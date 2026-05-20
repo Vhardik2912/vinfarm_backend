@@ -6,7 +6,6 @@ const {
   createVehicleSchema,
   updateVehicleSchema,
   createFuelLogSchema,
-  createMaintenanceLogSchema,
 } = require("./vehicleValidation");
 const { createDriverSchema, updateDriverSchema } = require("./driverValidation");
 const {
@@ -34,7 +33,6 @@ module.exports = {
   createTransportBookingSchema,
   updateTransportBookingSchema,
   createFuelLogSchema,
-  createMaintenanceLogSchema,
   createMaintenanceSchema,
   updateMaintenanceSchema,
 };

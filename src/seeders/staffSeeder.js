@@ -20,7 +20,7 @@ const seedStaff = async () => {
         managerUser = await User.create({
           name: "Default Manager",
           email: managerEmail,
-          number: "9876543210",
+          phone: "9876543210",
           password: "manager123",
           roleId: staffRole._id,
           isActive: true,
@@ -48,7 +48,7 @@ const seedStaff = async () => {
         receptionistUser = await User.create({
           name: "Default Receptionist",
           email: receptionistEmail,
-          number: "9876543211",
+          phone: "9876543211",
           password: "receptionist123",
           roleId: staffRole._id,
           isActive: true,

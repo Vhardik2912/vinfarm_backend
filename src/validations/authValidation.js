@@ -31,14 +31,14 @@ const registerCustomerSchema = Joi.object({
       "string.email": VALIDATION_MESSAGES.USER.EMAIL_VALID,
       "any.required": VALIDATION_MESSAGES.USER.EMAIL_REQUIRED,
     }),
-  number: Joi.string()
+  phone: Joi.string()
     .pattern(PATTERNS.PHONE)
     .required()
     .messages({
       "string.pattern.base": "Phone number must be a valid format with optional country code",
-      "any.required": VALIDATION_MESSAGES.USER.NUMBER_REQUIRED,
+      "any.required": VALIDATION_MESSAGES.USER.PHONE_REQUIRED,
     }),
-  country: Joi.string().optional().default("India"),
+  countryCode: Joi.string().optional().default("India"),
   address: Joi.string().optional().allow(""),
 });
 

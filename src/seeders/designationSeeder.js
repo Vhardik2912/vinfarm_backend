@@ -14,7 +14,6 @@ const seedDesignations = async () => {
       if (!designation) {
         await Designation.create({
           name: title,
-          status: true,
           isActive: true,
         });
         console.log(`👔 Designation '${title}' created successfully.`);

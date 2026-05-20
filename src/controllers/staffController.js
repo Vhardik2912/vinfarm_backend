@@ -28,8 +28,7 @@ const formatStaff = (profile) => {
     _id: user?._id || null,
     name: user?.name || "",
     email: user?.email || "",
-    number: user?.number || "",
-    roleId: user?.roleId || null,
+    phone: user?.phone || "",
     isActive: user?.isActive ?? true,
     createdAt: user?.createdAt,
     updatedAt: user?.updatedAt,
@@ -52,8 +51,7 @@ const formatStaff = (profile) => {
 exports.getStaffs = catchAsync("getStaffs", async (req, res, next) => {
   const staffProfiles = await StaffProfile.find().populate({
     path: "userId",
-    match: { isDeleted: false },
-    populate: { path: "roleId", select: "name status" }
+    match: { isDeleted: false }
   }).populate("designationId", "name status");
 
   const formattedStaffs = staffProfiles
@@ -79,8 +77,7 @@ exports.getStaff = catchAsync("getStaff", async (req, res, next) => {
     $or: [{ _id: id }, { userId: id }]
   }).populate({
     path: "userId",
-    match: { isDeleted: false },
-    populate: { path: "roleId", select: "name status" }
+    match: { isDeleted: false }
   }).populate("designationId", "name status");
 
   if (!staffProfile || !staffProfile.userId) {
@@ -101,9 +98,8 @@ exports.createStaff = catchAsync("createStaff", async (req, res, next) => {
     const {
       name,
       email,
-      number,
+      phone,
       password,
-      roleId: roleId,
       designationId,
       isActive,
       joindate,
@@ -112,7 +108,7 @@ exports.createStaff = catchAsync("createStaff", async (req, res, next) => {
     } = req.body;
 
     // Validation
-    if (!name || !email || !number || !password || !roleId || !designationId || !joindate || !salary) {
+    if (!name || !email || !phone || !password || !designationId || !joindate || !salary) {
       throw new AppError("Please provide all required staff details", 400);
     }
 
@@ -126,10 +122,10 @@ exports.createStaff = catchAsync("createStaff", async (req, res, next) => {
       throw new AppError("Email is already registered", 400);
     }
 
-    // Verify role exists
-    const roleDoc = await Role.findById(roleId);
-    if (!roleDoc) {
-      throw new AppError("Selected role not found", 404);
+    // Find or create default "staff" role
+    let staffRole = await Role.findOne({ name: "staff" });
+    if (!staffRole) {
+      staffRole = await Role.create({ name: "staff", status: true });
     }
 
     // Verify designation exists
@@ -142,16 +138,15 @@ exports.createStaff = catchAsync("createStaff", async (req, res, next) => {
     const user = await User.create({
       name,
       email,
-      number,
+      phone,
       password,
-      roleId: roleId,
+      roleId: staffRole._id,
       isActive: isActive !== undefined ? isActive : true,
     });
 
     // Create Staff Profile
     const profile = await StaffProfile.create({
       userId: user._id,
-      roleId: roleId,
       designationId: designationId,
       email,
       joindate,
@@ -160,8 +155,8 @@ exports.createStaff = catchAsync("createStaff", async (req, res, next) => {
       idProof: `/uploads/${req.file.filename}`,
     });
 
-    // Populate role for response
-    const populatedUser = await User.findById(user._id).populate("roleId", "name status");
+    // Populate designation for response
+    const populatedUser = await User.findById(user._id);
     const tempProfile = await StaffProfile.findById(profile._id).populate("designationId", "name status");
 
     successResponse({
@@ -184,7 +179,7 @@ exports.updateStaff = catchAsync("updateStaff", async (req, res, next) => {
     const {
       name,
       email,
-      number,
+      phone,
       isActive,
       designationId,
       password,
@@ -214,7 +209,7 @@ exports.updateStaff = catchAsync("updateStaff", async (req, res, next) => {
 
     user.name = name || user.name;
     user.email = email || user.email;
-    user.number = number || user.number;
+    user.phone = phone || user.phone;
     user.isActive = isActive !== undefined ? isActive : user.isActive;
     if (password) user.password = password;
     await user.save();
@@ -236,7 +231,7 @@ exports.updateStaff = catchAsync("updateStaff", async (req, res, next) => {
 
     await staffProfile.save();
 
-    const populatedUser = await User.findById(user._id).populate("roleId", "name status");
+    const populatedUser = await User.findById(user._id);
     const updatedProfile = await StaffProfile.findById(staffProfile._id).populate("designationId", "name status");
 
     successResponse({

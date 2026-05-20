@@ -20,15 +20,7 @@ const bookingSchema = new mongoose.Schema(
       required: [true, VALIDATION_MESSAGES.BOOKING.ROOM_REQUIRED],
     },
 
-    // ─── Room Info (Denormalized for snapshot) ───────────────────────────────────
-    roomNumber: {
-      type: String,
-      required: [true, VALIDATION_MESSAGES.BOOKING.ROOM_NUMBER_REQUIRED],
-    },
-    roomType: {
-      type: String,
-      required: [true, VALIDATION_MESSAGES.BOOKING.ROOM_TYPE_REQUIRED],
-    },
+
 
     // ─── Guest Info ──────────────────────────────────────────────────────────────
     numberOfGuests: {

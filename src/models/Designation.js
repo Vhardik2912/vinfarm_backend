@@ -9,10 +9,7 @@ const designationSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
-    status: {
-      type: Boolean,
-      default: true,
-    },
+
     isActive: {
       type: Boolean,
       default: true,

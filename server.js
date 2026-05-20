@@ -18,6 +18,8 @@ const maintenanceRoutes = require("./src/routes/maintenanceRoutes");
 const designationRoutes = require("./src/routes/designationRoutes");
 const bookingRoutes = require("./src/routes/bookingRoutes");
 const farmBookingRoutes = require("./src/routes/farmBookingRoutes");
+const exportRoutes = require("./src/routes/exportRoutes");
+
 
 
 // Load env vars
@@ -55,6 +57,8 @@ app.use("/api/maintenance", maintenanceRoutes);
 app.use("/api/designation", designationRoutes);
 app.use("/api/booking", bookingRoutes);
 app.use("/api/farm-booking", farmBookingRoutes);
+app.use("/api/export", exportRoutes);
+
 
 const errorHandler = require("./src/middleware/errorHandler");
 app.use(errorHandler);

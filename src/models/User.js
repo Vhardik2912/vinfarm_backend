@@ -18,19 +18,19 @@ const userSchema = new mongoose.Schema(
         VALIDATION_MESSAGES.USER.EMAIL_VALID,
       ],
     },
-    number: {
+    phone: {
       type: String,
-      required: [true, VALIDATION_MESSAGES.USER.NUMBER_REQUIRED],
+      required: [true, VALIDATION_MESSAGES.USER.PHONE_REQUIRED],
       match: [
         PATTERNS.PHONE,
         "Please provide a valid phone number with optional country code",
       ],
     },
-    country: {
+    countryCode: {
       type: String,
-      required: [true, VALIDATION_MESSAGES.USER.COUNTRY_REQUIRED],
+      required: [true, VALIDATION_MESSAGES.USER.COUNTRY_CODE_REQUIRED],
       trim: true,
-      default: "India",
+      default: "Africa",
     },
     password: {
       type: String,

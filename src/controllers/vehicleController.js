@@ -1,6 +1,5 @@
 const Vehicle = require("../models/Vehicle");
 const FuelLog = require("../models/FuelLog");
-const MaintenanceLog = require("../models/MaintenanceLog");
 const { catchAsync, successResponse } = require("../utils/responseHelper");
 const AppError = require("../utils/AppError");
 const fs = require("fs");
@@ -169,7 +168,7 @@ exports.deleteVehicle = catchAsync("deleteVehicle", async (req, res, next) => {
 // @route   POST /api/vehicle/fuel/post
 // @access  Public
 exports.addFuelLog = catchAsync("addFuelLog", async (req, res, next) => {
-  const { vehicleId, fuelQuantity, cost, odometerReading } = req.body;
+  const { vehicleId, fuelQuantity, cost, odometerReading, createdBy } = req.body;
 
   const vehicle = await Vehicle.findOne({ _id: vehicleId, isDeleted: false });
   if (!vehicle) {
@@ -182,6 +181,7 @@ exports.addFuelLog = catchAsync("addFuelLog", async (req, res, next) => {
     cost,
     odometerReading,
     filledBy: req.user ? req.user._id : null,
+    createdBy,
   });
 
   successResponse({
@@ -208,48 +208,3 @@ exports.getFuelLogs = catchAsync("getFuelLogs", async (req, res, next) => {
   });
 });
 
-// ─── MAINTENANCE REMINDERS & LOGS ──────────────────────────────
-
-// @desc    Add a maintenance log for a vehicle
-// @route   POST /api/vehicle/maintenance/post
-// @access  Public
-exports.addMaintenanceLog = catchAsync("addMaintenanceLog", async (req, res, next) => {
-  const { vehicleId, maintenanceDate, description, cost, odometerReading, nextServiceOdometer } = req.body;
-
-  const vehicle = await Vehicle.findOne({ _id: vehicleId, isDeleted: false });
-  if (!vehicle) {
-    throw new AppError("Vehicle not found", 404);
-  }
-
-  const log = await MaintenanceLog.create({
-    vehicleId,
-    maintenanceDate,
-    description,
-    cost,
-    odometerReading,
-    nextServiceOdometer,
-  });
-
-  successResponse({
-    res,
-    statusCode: 201,
-    data: log,
-  });
-});
-
-// @desc    Get maintenance logs/reminders for a vehicle
-// @route   POST /api/vehicle/maintenance/get
-// @access  Public
-exports.getMaintenanceLogs = catchAsync("getMaintenanceLogs", async (req, res, next) => {
-  const { vehicleId } = req.body;
-  if (!vehicleId) {
-    throw new AppError("Please provide vehicleId", 400);
-  }
-
-  const logs = await MaintenanceLog.find({ vehicleId }).sort({ maintenanceDate: -1 });
-
-  successResponse({
-    res,
-    data: logs,
-  });
-});

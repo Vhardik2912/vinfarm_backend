@@ -12,7 +12,7 @@ const seedCustomer = async () => {
         customerUser = await User.create({
           name: "John Doe",
           email: customerEmail,
-          number: "1234567890", // This acts as their login password/credential
+          phone: "1234567890", // This acts as their login password/credential
           roleId: customerRole._id,
           isActive: true,
         });
