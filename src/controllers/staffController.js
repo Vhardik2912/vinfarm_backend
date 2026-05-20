@@ -35,7 +35,7 @@ const formatStaff = (profile) => {
     profile: {
       profileId: obj._id,
       designationId: obj.designationId,
-      joindate: obj.joindate,
+      joinDate: obj.joinDate,
       enddate: obj.enddate,
       salary: obj.salary,
       idProof: obj.idProof,
@@ -102,13 +102,13 @@ exports.createStaff = catchAsync("createStaff", async (req, res, next) => {
       password,
       designationId,
       isActive,
-      joindate,
+      joinDate,
       enddate,
       salary,
     } = req.body;
 
     // Validation
-    if (!name || !email || !phone || !password || !designationId || !joindate || !salary) {
+    if (!name || !email || !phone || !password || !designationId || !joinDate || !salary) {
       throw new AppError("Please provide all required staff details", 400);
     }
 
@@ -149,7 +149,7 @@ exports.createStaff = catchAsync("createStaff", async (req, res, next) => {
       userId: user._id,
       designationId: designationId,
       email,
-      joindate,
+      joinDate,
       enddate: enddate || null,
       salary,
       idProof: `/uploads/${req.file.filename}`,
@@ -183,7 +183,7 @@ exports.updateStaff = catchAsync("updateStaff", async (req, res, next) => {
       isActive,
       designationId,
       password,
-      joindate,
+      joinDate,
       enddate,
       salary,
     } = req.body;
@@ -217,7 +217,7 @@ exports.updateStaff = catchAsync("updateStaff", async (req, res, next) => {
     // Update Staff Profile fields
     if (email) staffProfile.email = email;
     if (designationId) staffProfile.designationId = designationId;
-    if (joindate) staffProfile.joindate = joindate;
+    if (joinDate) staffProfile.joinDate = joinDate;
     if (enddate !== undefined) staffProfile.enddate = enddate === "" ? null : enddate;
     if (salary) staffProfile.salary = salary;
 

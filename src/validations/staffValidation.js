@@ -26,7 +26,7 @@ const createStaffSchema = Joi.object({
     "any.required": "Designation ID is required",
   }),
   password: Joi.string().min(6).required(),
-  joindate: Joi.date().required().messages({
+  joinDate: Joi.date().required().messages({
     "any.required": VALIDATION_MESSAGES.STAFF.JOIN_DATE_REQUIRED,
   }),
   salary: Joi.number().required().messages({
@@ -48,7 +48,7 @@ const updateStaffSchema = Joi.object({
   countryCode: Joi.string().optional(),
   designationId: Joi.string().optional(),
   password: Joi.string().min(6).optional(),
-  joindate: Joi.date().optional(),
+  joinDate: Joi.date().optional(),
   salary: Joi.number().optional(),
   isActive: Joi.boolean().optional(),
 });

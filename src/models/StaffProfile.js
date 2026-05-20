@@ -13,11 +13,11 @@ const staffProfileSchema = new mongoose.Schema(
     designationId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Designation",
-      required: true,
+      required: false,
     },
     joinDate: {
       type: Date,
-      required: [true, VALIDATION_MESSAGES.STAFF.JOIN_DATE_REQUIRED],
+      required: [false, VALIDATION_MESSAGES.STAFF.JOIN_DATE_REQUIRED],
     },
     endDate: {
       type: Date,
@@ -25,11 +25,11 @@ const staffProfileSchema = new mongoose.Schema(
     },
     salary: {
       type: Number,
-      required: [true, VALIDATION_MESSAGES.STAFF.SALARY_REQUIRED],
+      required: [false, VALIDATION_MESSAGES.STAFF.SALARY_REQUIRED],
     },
     idProof: {
       type: String, // Path of uploaded ID document
-      required: [true, VALIDATION_MESSAGES.STAFF.ID_PROOF_REQUIRED],
+      required: [false, VALIDATION_MESSAGES.STAFF.ID_PROOF_REQUIRED],
     },
     status: {
       type: Boolean,

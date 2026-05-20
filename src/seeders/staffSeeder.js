@@ -31,7 +31,7 @@ const seedStaff = async () => {
           roleId: staffRole._id,
           designationId: managerDesignation._id,
           email: managerEmail,
-          joindate: new Date(),
+          joinDate: new Date(),
           salary: 50000,
           idProof: "/uploads/manager_id.pdf",
         });
@@ -59,7 +59,7 @@ const seedStaff = async () => {
           roleId: staffRole._id,
           designationId: receptionistDesignation._id,
           email: receptionistEmail,
-          joindate: new Date(),
+          joinDate: new Date(),
           salary: 30000,
           idProof: "/uploads/receptionist_id.pdf",
         });
@@ -87,7 +87,7 @@ const seedStaff = async () => {
           roleId: staffRole._id,
           designationId: driverDesignation._id,
           email: driverEmail,
-          joindate: new Date(),
+          joinDate: new Date(),
           salary: 25000,
           idProof: "/uploads/driver_id.pdf",
         });
@@ -115,7 +115,7 @@ const seedStaff = async () => {
           roleId: staffRole._id,
           designationId: housekeepingDesignation._id,
           email: housekeepingEmail,
-          joindate: new Date(),
+          joinDate: new Date(),
           salary: 20000,
           idProof: "/uploads/housekeeping_id.pdf",
         });
@@ -143,7 +143,7 @@ const seedStaff = async () => {
           roleId: staffRole._id,
           designationId: maintenanceDesignation._id,
           email: maintenanceEmail,
-          joindate: new Date(),
+          joinDate: new Date(),
           salary: 28000,
           idProof: "/uploads/maintenance_id.pdf",
         });
@@ -171,7 +171,7 @@ const seedStaff = async () => {
           roleId: staffRole._id,
           designationId: restaurantDesignation._id,
           email: restaurantEmail,
-          joindate: new Date(),
+          joinDate: new Date(),
           salary: 35000,
           idProof: "/uploads/restaurant_id.pdf",
         });

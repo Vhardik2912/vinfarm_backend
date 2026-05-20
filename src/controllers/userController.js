@@ -21,12 +21,12 @@ const safeDeleteFile = (filePath) => {
 // @route   GET /api/v1/users/get
 // @access  Public
 exports.getUsers = catchAsync("getUsers", async (req, res, next) => {
-  const users = await User.find({ isDeleted: false }).populate("role", "name isActive");
+  const users = await User.find({ isDeleted: false }).populate("roleId", "name isActive");
   const populatedUsers = [];
 
   for (let user of users) {
     let profile = null;
-    if (user.role && user.role.name.toLowerCase() === "customer") {
+    if (user.roleId && user.roleId.name.toLowerCase() === "customer") {
       profile = await CustomerProfile.findOne({ userId: user._id });
     } else {
       profile = await StaffProfile.findOne({ userId: user._id });
@@ -53,13 +53,13 @@ exports.getUser = catchAsync("getUser", async (req, res, next) => {
     throw new AppError("Please provide a user ID", 400);
   }
 
-  const user = await User.findOne({ _id: id, isDeleted: false }).populate("role", "name isActive");
+  const user = await User.findOne({ _id: id, isDeleted: false }).populate("roleId", "name isActive");
   if (!user) {
     throw new AppError("User not found", 404);
   }
 
   let profile = null;
-  if (user.role && user.role.name.toLowerCase() === "customer") {
+  if (user.roleId && user.roleId.name.toLowerCase() === "customer") {
     profile = await CustomerProfile.findOne({ userId: user._id });
   } else {
     profile = await StaffProfile.findOne({ userId: user._id });
@@ -88,11 +88,12 @@ exports.createUser = catchAsync("createUser", async (req, res, next) => {
       isActive,
       // Staff profile fields
       password, // Password is only required for Staff roles
-      joindate,
+      joinDate,
       enddate,
       salary,
       // Customer profile fields
       address,
+      designationId
     } = req.body;
 
     // 1. Basic validation
@@ -119,9 +120,9 @@ exports.createUser = catchAsync("createUser", async (req, res, next) => {
       if (!password) {
         throw new AppError("Please provide a password for Staff", 400);
       }
-      if (!req.file) {
-        throw new AppError("Please upload an ID proof document for Staff", 400);
-      }
+      // if (!req.file) {
+      //   throw new AppError("Please upload an ID proof document for Staff", 400);
+      // }
     }
 
     // 5. Create core User account
@@ -130,6 +131,7 @@ exports.createUser = catchAsync("createUser", async (req, res, next) => {
       email,
       phone,
       countryCode,
+      designationId,
       password: !isCustomer ? password : null,
       roleId: roleId,
       isActive: isActive !== undefined ? isActive : true,
@@ -147,7 +149,8 @@ exports.createUser = catchAsync("createUser", async (req, res, next) => {
       profile = await StaffProfile.create({
         userId: user._id,
         email,
-        joindate,
+        joinDate,
+        designationId,
         enddate: enddate || null,
         salary,
         idProof: `/uploads/${req.file.filename}`,
@@ -179,10 +182,12 @@ exports.updateUser = catchAsync("updateUser", async (req, res, next) => {
       email,
       phone,
       countryCode,
+      designationId,
       isActive,
       // Staff Profile fields
       password, // Password update for staff
-      joindate,
+      joinDate,
+      
       enddate,
       salary,
       // Customer Profile fields
@@ -193,7 +198,7 @@ exports.updateUser = catchAsync("updateUser", async (req, res, next) => {
       throw new AppError("Please provide a user ID", 400);
     }
 
-    const user = await User.findById(id).populate("role");
+    const user = await User.findById(id).populate("roleId");
     if (!user) {
       throw new AppError("User not found", 404);
     }
@@ -208,7 +213,7 @@ exports.updateUser = catchAsync("updateUser", async (req, res, next) => {
     await user.save();
 
     let profile = null;
-    const isCustomer = user.role && user.role.name.toLowerCase() === "customer";
+    const isCustomer = user.roleId && user.roleId.name.toLowerCase() === "customer";
 
     // 2. Update matching Profile
     if (isCustomer) {
@@ -220,13 +225,13 @@ exports.updateUser = catchAsync("updateUser", async (req, res, next) => {
     } else {
       let staffProfile = await StaffProfile.findOne({ userId: user._id });
 
-      if (!staffProfile) {
-        staffProfile = new StaffProfile({ userId: user._id, email: user.email });
-      }
+     if (!staffProfile) {
+  throw new AppError("Staff profile not found", 404);
+}
 
       // Update staff profile fields
       if (email) staffProfile.email = email;
-      if (joindate) staffProfile.joindate = joindate;
+      if (joinDate) staffProfile.joinDate = joinDate;
       if (enddate !== undefined) staffProfile.enddate = enddate === "" ? null : enddate;
       if (salary) staffProfile.salary = salary;
 
