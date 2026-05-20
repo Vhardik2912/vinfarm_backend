@@ -6,7 +6,6 @@ const seedCustomer = require("./customerSeeder");
 const seedProperties = require("./propertySeeder");
 const seedRooms = require("./roomSeeder");
 const seedVehicles = require("./vehicleSeeder");
-const seedDrivers = require("./driverSeeder");
 const seedMaintenance = require("./maintenanceSeeder");
 
 const runSeeders = async () => {
@@ -22,7 +21,6 @@ const runSeeders = async () => {
     await seedProperties();
     await seedRooms();
     await seedVehicles();
-    await seedDrivers();
     await seedMaintenance();
 
     console.log("✅ System bootstrapper finished.");

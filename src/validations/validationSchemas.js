@@ -7,7 +7,7 @@ const {
   updateVehicleSchema,
   createFuelLogSchema,
 } = require("./vehicleValidation");
-const { createDriverSchema, updateDriverSchema } = require("./driverValidation");
+
 const {
   createTransportBookingSchema,
   updateTransportBookingSchema,
@@ -28,8 +28,6 @@ module.exports = {
   updateStaffSchema,
   createVehicleSchema,
   updateVehicleSchema,
-  createDriverSchema,
-  updateDriverSchema,
   createTransportBookingSchema,
   updateTransportBookingSchema,
   createFuelLogSchema,

@@ -12,13 +12,11 @@ const roomRoutes = require("./src/routes/roomRoutes");
 const loginRoutes = require("./src/routes/loginRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const vehicleRoutes = require("./src/routes/vehicleRoutes");
-const driverRoutes = require("./src/routes/driverRoutes");
 const transportBookingRoutes = require("./src/routes/transportBookingRoutes");
 const maintenanceRoutes = require("./src/routes/maintenanceRoutes");
 const designationRoutes = require("./src/routes/designationRoutes");
 const bookingRoutes = require("./src/routes/bookingRoutes");
 const farmBookingRoutes = require("./src/routes/farmBookingRoutes");
-const exportRoutes = require("./src/routes/exportRoutes");
 
 
 
@@ -51,13 +49,11 @@ app.use("/api/room", roomRoutes);
 app.use("/api/login", loginRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/vehicle", vehicleRoutes);
-app.use("/api/driver", driverRoutes);
 app.use("/api/transport-booking", transportBookingRoutes);
 app.use("/api/maintenance", maintenanceRoutes);
 app.use("/api/designation", designationRoutes);
 app.use("/api/booking", bookingRoutes);
 app.use("/api/farm-booking", farmBookingRoutes);
-app.use("/api/export", exportRoutes);
 
 
 const errorHandler = require("./src/middleware/errorHandler");

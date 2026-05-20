@@ -1,6 +1,5 @@
 const TransportBooking = require("../models/TransportBooking");
 const Vehicle = require("../models/Vehicle");
-const Driver = require("../models/Driver");
 const User = require("../models/User");
 const { catchAsync, successResponse } = require("../utils/responseHelper");
 const AppError = require("../utils/AppError");
@@ -11,8 +10,7 @@ const AppError = require("../utils/AppError");
 exports.getBookings = catchAsync("getBookings", async (req, res, next) => {
   const bookings = await TransportBooking.find({ isDeleted: false })
     .populate("customerId", "name email number")
-    .populate("vehicleId", "make model licensePlate type pricePerDay priceAirportTrip")
-    .populate("driverId", "name phone licenseNumber");
+    .populate("vehicleId", "make model licensePlate type pricePerDay priceAirportTrip");
 
   successResponse({
     res,
@@ -31,8 +29,7 @@ exports.getBooking = catchAsync("getBooking", async (req, res, next) => {
 
   const booking = await TransportBooking.findOne({ _id: id, isDeleted: false })
     .populate("customerId", "name email number")
-    .populate("vehicleId", "make model licensePlate type pricePerDay priceAirportTrip")
-    .populate("driverId", "name phone licenseNumber");
+    .populate("vehicleId", "make model licensePlate type pricePerDay priceAirportTrip");
 
   if (!booking) {
     throw new AppError("Booking not found", 404);
@@ -51,7 +48,6 @@ exports.createBooking = catchAsync("createBooking", async (req, res, next) => {
   const {
     customerId,
     vehicleId,
-    driverId,
     bookingType,
     pickupLocation,
     dropoffLocation,
@@ -77,15 +73,7 @@ exports.createBooking = catchAsync("createBooking", async (req, res, next) => {
     throw new AppError("Vehicle is currently deactivated", 400);
   }
 
-  // 3. Verify Driver if provided
-  if (driverId) {
-    const driver = await Driver.findOne({ _id: driverId, isDeleted: false, isActive: true });
-    if (!driver) {
-      throw new AppError("Active driver not found", 404);
-    }
-  }
-
-  // 4. Calculate total price
+  // 3. Calculate total price
   let totalPrice = 0;
   const start = new Date(pickupDateTime);
 
@@ -101,25 +89,15 @@ exports.createBooking = catchAsync("createBooking", async (req, res, next) => {
     const diffTime = Math.abs(end - start);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Minimum 1 day
     totalPrice = diffDays * vehicle.pricePerDay;
-
-    // Add driver service fee (optional flat rate of 500 per day if driver selected)
-    if (driverId) {
-      totalPrice += diffDays * 500;
-    }
   } else {
     // Airport Pickup or Airport Drop
     totalPrice = vehicle.priceAirportTrip;
-    // Add driver service fee (optional flat rate of 300 per trip if driver selected)
-    if (driverId) {
-      totalPrice += 300;
-    }
   }
 
-  // 5. Create Booking
+  // 4. Create Booking
   const booking = await TransportBooking.create({
     customerId,
     vehicleId,
-    driverId: driverId || null,
     bookingType,
     pickupLocation,
     dropoffLocation,
@@ -153,7 +131,6 @@ exports.updateBooking = catchAsync("updateBooking", async (req, res, next) => {
   const {
     customerId,
     vehicleId,
-    driverId,
     bookingType,
     pickupLocation,
     dropoffLocation,
@@ -177,16 +154,6 @@ exports.updateBooking = catchAsync("updateBooking", async (req, res, next) => {
     booking.vehicleId = vehicleId;
   }
 
-  if (driverId !== undefined) {
-    if (driverId) {
-      const driver = await Driver.findOne({ _id: driverId, isDeleted: false, isActive: true });
-      if (!driver) throw new AppError("Driver not found", 404);
-      booking.driverId = driverId;
-    } else {
-      booking.driverId = null;
-    }
-  }
-
   booking.bookingType = bookingType || booking.bookingType;
   booking.pickupLocation = pickupLocation || booking.pickupLocation;
   booking.dropoffLocation = dropoffLocation || booking.dropoffLocation;
@@ -198,19 +165,15 @@ exports.updateBooking = catchAsync("updateBooking", async (req, res, next) => {
   // Recalculate price if requested, or if custom price was passed in
   if (totalPrice !== undefined) {
     booking.totalPrice = totalPrice;
-  } else if (vehicleId || pickupDateTime || returnDateTime || driverId !== undefined) {
+  } else if (vehicleId || pickupDateTime || returnDateTime) {
     const currentVehicle = await Vehicle.findById(booking.vehicleId);
     const start = new Date(booking.pickupDateTime);
     if (booking.bookingType === "Car Rental" && booking.returnDateTime) {
       const end = new Date(booking.returnDateTime);
       const diffDays = Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24));
-      let price = diffDays * currentVehicle.pricePerDay;
-      if (booking.driverId) price += diffDays * 500;
-      booking.totalPrice = price;
+      booking.totalPrice = diffDays * currentVehicle.pricePerDay;
     } else {
-      let price = currentVehicle.priceAirportTrip;
-      if (booking.driverId) price += 300;
-      booking.totalPrice = price;
+      booking.totalPrice = currentVehicle.priceAirportTrip;
     }
   }
 
