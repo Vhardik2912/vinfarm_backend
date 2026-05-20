@@ -6,7 +6,9 @@ const seedDesignations = async () => {
       "Driver",
       "manager",
       "receptionist",
-      "housekeeping"
+      "housekeeping",
+      "maintenance",
+      "restaurant"
     ];
 
     for (const title of defaultDesignations) {
