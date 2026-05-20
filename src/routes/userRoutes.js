@@ -1,10 +1,14 @@
 const express = require("express");
+const { protect } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 const validate = require("../middleware/validate");
 const { createUserSchema, updateUserSchema } = require("../validations/validationSchemas");
 const { getUsers, getUser, createUser, updateUser, deleteUser } = require("../controllers/userController");
 
 const router = express.Router();
+
+// ─── Apply auth middleware to all user routes ─────────────────────────────────
+router.use(protect);
 
 router.get("/get", getUsers);
 router.get("/getid/:id", getUser);

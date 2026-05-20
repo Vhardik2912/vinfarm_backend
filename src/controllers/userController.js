@@ -21,7 +21,7 @@ const safeDeleteFile = (filePath) => {
 // @route   GET /api/v1/users/get
 // @access  Public
 exports.getUsers = catchAsync("getUsers", async (req, res, next) => {
-  const users = await User.find({ isDeleted: false }).populate("roleId", "name isActive");
+  const users = await User.find({ isDeleted: false }).populate("roleId", "name status");
   const populatedUsers = [];
 
   for (let user of users) {
@@ -53,7 +53,7 @@ exports.getUser = catchAsync("getUser", async (req, res, next) => {
     throw new AppError("Please provide a user ID", 400);
   }
 
-  const user = await User.findOne({ _id: id, isDeleted: false }).populate("roleId", "name isActive");
+  const user = await User.findOne({ _id: id, isDeleted: false }).populate("roleId", "name status");
   if (!user) {
     throw new AppError("User not found", 404);
   }
@@ -89,7 +89,7 @@ exports.createUser = catchAsync("createUser", async (req, res, next) => {
       // Staff profile fields
       password, // Password is only required for Staff roles
       joinDate,
-      enddate,
+      endDate,
       salary,
       // Customer profile fields
       address,
@@ -148,10 +148,8 @@ exports.createUser = catchAsync("createUser", async (req, res, next) => {
     } else {
       profile = await StaffProfile.create({
         userId: user._id,
-        email,
         joinDate,
-        designationId,
-        enddate: enddate || null,
+        endDate: endDate || null,
         salary,
         idProof: `/uploads/${req.file.filename}`,
       });
@@ -187,8 +185,7 @@ exports.updateUser = catchAsync("updateUser", async (req, res, next) => {
       // Staff Profile fields
       password, // Password update for staff
       joinDate,
-      
-      enddate,
+      endDate,
       salary,
       // Customer Profile fields
       address,
@@ -225,14 +222,13 @@ exports.updateUser = catchAsync("updateUser", async (req, res, next) => {
     } else {
       let staffProfile = await StaffProfile.findOne({ userId: user._id });
 
-     if (!staffProfile) {
-  throw new AppError("Staff profile not found", 404);
-}
+      if (!staffProfile) {
+        staffProfile = new StaffProfile({ userId: user._id });
+      }
 
       // Update staff profile fields
-      if (email) staffProfile.email = email;
       if (joinDate) staffProfile.joinDate = joinDate;
-      if (enddate !== undefined) staffProfile.enddate = enddate === "" ? null : enddate;
+      if (endDate !== undefined) staffProfile.endDate = endDate === "" ? null : endDate;
       if (salary) staffProfile.salary = salary;
 
       // If a new ID Proof file was uploaded

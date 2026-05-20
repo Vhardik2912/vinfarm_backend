@@ -1,10 +1,14 @@
 const express = require("express");
+const { protect } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 const validate = require("../middleware/validate");
 const { createVehicleSchema, updateVehicleSchema, createFuelLogSchema } = require("../validations/validationSchemas");
 const { getVehicles, getVehicle, createVehicle, updateVehicle, deleteVehicle, addFuelLog, getFuelLogs } = require("../controllers/vehicleController");
 
 const router = express.Router();
+
+// ─── Apply auth middleware to all vehicle routes ──────────────────────────────
+router.use(protect);
 
 // ─── Vehicle CRUD (5 standard routes) ────────────────────────────────────────
 router.get("/get", getVehicles);

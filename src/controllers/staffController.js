@@ -23,7 +23,7 @@ const formatStaff = (profile) => {
   const obj = profile.toObject ? profile.toObject() : profile;
   const user = obj.userId;
   delete obj.userId;
-  
+
   return {
     _id: user?._id || null,
     name: user?.name || "",
@@ -36,7 +36,7 @@ const formatStaff = (profile) => {
       profileId: obj._id,
       designationId: obj.designationId,
       joinDate: obj.joinDate,
-      enddate: obj.enddate,
+      endDate: obj.endDate,
       salary: obj.salary,
       idProof: obj.idProof,
       createdAt: obj.createdAt,
@@ -103,7 +103,7 @@ exports.createStaff = catchAsync("createStaff", async (req, res, next) => {
       designationId,
       isActive,
       joinDate,
-      enddate,
+      endDate,
       salary,
     } = req.body;
 
@@ -148,9 +148,8 @@ exports.createStaff = catchAsync("createStaff", async (req, res, next) => {
     const profile = await StaffProfile.create({
       userId: user._id,
       designationId: designationId,
-      email,
       joinDate,
-      enddate: enddate || null,
+      endDate: endDate || null,
       salary,
       idProof: `/uploads/${req.file.filename}`,
     });
@@ -184,7 +183,7 @@ exports.updateStaff = catchAsync("updateStaff", async (req, res, next) => {
       designationId,
       password,
       joinDate,
-      enddate,
+      endDate,
       salary,
     } = req.body;
 
@@ -215,10 +214,9 @@ exports.updateStaff = catchAsync("updateStaff", async (req, res, next) => {
     await user.save();
 
     // Update Staff Profile fields
-    if (email) staffProfile.email = email;
     if (designationId) staffProfile.designationId = designationId;
     if (joinDate) staffProfile.joinDate = joinDate;
-    if (enddate !== undefined) staffProfile.enddate = enddate === "" ? null : enddate;
+    if (endDate !== undefined) staffProfile.endDate = endDate === "" ? null : endDate;
     if (salary) staffProfile.salary = salary;
 
     // Handle new ID Proof file upload

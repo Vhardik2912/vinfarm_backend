@@ -1,9 +1,13 @@
 const express = require("express");
+const { protect } = require("../middleware/authMiddleware");
 const validate = require("../middleware/validate");
 const { createMaintenanceSchema, updateMaintenanceSchema } = require("../validations/validationSchemas");
 const { getMaintenances, getMaintenance, createMaintenance, updateMaintenance, deleteMaintenance } = require("../controllers/maintenanceController");
 
 const router = express.Router();
+
+// ─── Apply auth middleware to all maintenance routes ──────────────────────────
+router.use(protect);
 
 router.get("/get", getMaintenances);
 router.get("/getid/:id", getMaintenance);

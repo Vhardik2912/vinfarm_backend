@@ -35,7 +35,7 @@ exports.getBookings = catchAsync("getBookings", async (req, res, next) => {
   }
 
   const bookings = await Booking.find(filter)
-    .populate("customerId", "name email number")
+    .populate("customerId", "name email phone")
     .populate("roleId", "name")
     .populate("roomId", "roomNumber roomType basePrice")
     .sort({ createdAt: -1 });
@@ -51,7 +51,7 @@ exports.getBooking = catchAsync("getBooking", async (req, res, next) => {
   if (!id) throw new AppError("Please provide a booking ID", 400);
 
   const booking = await Booking.findOne({ _id: id, isDeleted: false })
-    .populate("customerId", "name email number")
+    .populate("customerId", "name email phone")
     .populate("roleId", "name")
     .populate("roomId", "roomNumber roomType basePrice bookingStatus");
 
@@ -142,7 +142,7 @@ exports.createBooking = catchAsync("createBooking", async (req, res, next) => {
   }
 
   const populatedBooking = await Booking.findById(booking._id)
-    .populate("customerId", "name email number")
+    .populate("customerId", "name email phone")
     .populate("roleId", "name")
     .populate("roomId", "roomNumber roomType basePrice");
 

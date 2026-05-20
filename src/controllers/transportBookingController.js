@@ -9,7 +9,7 @@ const AppError = require("../utils/AppError");
 // @access  Public
 exports.getBookings = catchAsync("getBookings", async (req, res, next) => {
   const bookings = await TransportBooking.find({ isDeleted: false })
-    .populate("customerId", "name email number")
+    .populate("customerId", "name email phone")
     .populate("vehicleId", "make model licensePlate type pricePerDay priceAirportTrip");
 
   successResponse({
@@ -28,7 +28,7 @@ exports.getBooking = catchAsync("getBooking", async (req, res, next) => {
   }
 
   const booking = await TransportBooking.findOne({ _id: id, isDeleted: false })
-    .populate("customerId", "name email number")
+    .populate("customerId", "name email phone")
     .populate("vehicleId", "make model licensePlate type pricePerDay priceAirportTrip");
 
   if (!booking) {

@@ -1,4 +1,5 @@
 const express = require("express");
+const { protect } = require("../middleware/authMiddleware");
 const {
   getBookings,
   getBooking,
@@ -14,6 +15,9 @@ const {
 } = require("../controllers/bookingController");
 
 const router = express.Router();
+
+// ─── Apply auth middleware to all booking routes ──────────────────────────────
+router.use(protect);
 
 // ─── 5 Standard CRUD Routes ───────────────────────────────────────────────────
 router.get("/get", getBookings);

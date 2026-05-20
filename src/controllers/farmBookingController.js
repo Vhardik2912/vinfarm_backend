@@ -49,7 +49,7 @@ const calculateFarmBookingPrice = (startDate, endDate, guestsCount, addons) => {
 // @access  Public
 exports.getFarmBookings = catchAsync("getFarmBookings", async (req, res, next) => {
   const bookings = await FarmBooking.find({ isDeleted: false })
-    .populate("customerId", "name email number")
+    .populate("customerId", "name email phone")
     .sort({ createdAt: -1 });
 
   successResponse({
@@ -68,7 +68,7 @@ exports.getFarmBooking = catchAsync("getFarmBooking", async (req, res, next) => 
   }
 
   const booking = await FarmBooking.findOne({ _id: id, isDeleted: false })
-    .populate("customerId", "name email number");
+    .populate("customerId", "name email phone");
 
   if (!booking) {
     throw new AppError("Farm booking not found", 404);
@@ -143,7 +143,7 @@ exports.createFarmBooking = catchAsync("createFarmBooking", async (req, res, nex
     specialInstructions: specialInstructions || "",
   });
 
-  const populatedBooking = await FarmBooking.findById(booking._id).populate("customerId", "name email number");
+  const populatedBooking = await FarmBooking.findById(booking._id).populate("customerId", "name email phone");
 
   successResponse({
     res,
@@ -224,7 +224,7 @@ exports.updateFarmBooking = catchAsync("updateFarmBooking", async (req, res, nex
 
   await booking.save();
 
-  const populatedBooking = await FarmBooking.findById(booking._id).populate("customerId", "name email number");
+  const populatedBooking = await FarmBooking.findById(booking._id).populate("customerId", "name email phone");
 
   successResponse({
     res,
