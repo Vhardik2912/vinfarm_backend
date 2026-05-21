@@ -28,8 +28,8 @@ exports.getUsers = catchAsync("getUsers", async (req, res, next) => {
     let profile = null;
     if (user.roleId && user.roleId.name.toLowerCase() === "customer") {
       profile = await CustomerProfile.findOne({ userId: user._id });
-    } else {
-      profile = await StaffProfile.findOne({ userId: user._id });
+    } else if (user.roleId && user.roleId.name.toLowerCase() !== "admin") {
+      profile = await StaffProfile.findOne({ userId: user._id }).populate("designationId", "name status");
     }
 
     populatedUsers.push({
@@ -61,8 +61,8 @@ exports.getUser = catchAsync("getUser", async (req, res, next) => {
   let profile = null;
   if (user.roleId && user.roleId.name.toLowerCase() === "customer") {
     profile = await CustomerProfile.findOne({ userId: user._id });
-  } else {
-    profile = await StaffProfile.findOne({ userId: user._id });
+  } else if (user.roleId && user.roleId.name.toLowerCase() !== "admin") {
+    profile = await StaffProfile.findOne({ userId: user._id }).populate("designationId", "name status");
   }
 
   successResponse({
@@ -148,10 +148,11 @@ exports.createUser = catchAsync("createUser", async (req, res, next) => {
     } else {
       profile = await StaffProfile.create({
         userId: user._id,
-        joinDate,
+        designationId: designationId || null,
+        joinDate: joinDate || new Date(),
         endDate: endDate || null,
-        salary,
-        idProof: `/uploads/${req.file.filename}`,
+        salary: salary || 0,
+        idProof: req.file ? `/uploads/${req.file.filename}` : "",
       });
     }
 
@@ -180,14 +181,13 @@ exports.updateUser = catchAsync("updateUser", async (req, res, next) => {
       email,
       phone,
       countryCode,
+      roleId,
       designationId,
       isActive,
-      // Staff Profile fields
-      password, // Password update for staff
+      password,
       joinDate,
       endDate,
       salary,
-      // Customer Profile fields
       address,
     } = req.body;
 
@@ -200,7 +200,17 @@ exports.updateUser = catchAsync("updateUser", async (req, res, next) => {
       throw new AppError("User not found", 404);
     }
 
-    // 1. Update Core User details
+    const previousRoleName = user.roleId ? user.roleId.name.toLowerCase() : "";
+    let targetRole = user.roleId;
+
+    if (roleId) {
+      targetRole = await Role.findById(roleId);
+      if (!targetRole) {
+        throw new AppError("Selected role not found", 404);
+      }
+      user.roleId = targetRole._id;
+    }
+
     user.name = name || user.name;
     user.email = email || user.email;
     user.phone = phone || user.phone;
@@ -209,29 +219,38 @@ exports.updateUser = catchAsync("updateUser", async (req, res, next) => {
     if (password) user.password = password;
     await user.save();
 
+    const targetRoleName = targetRole.name.toLowerCase();
+    const roleChanged = previousRoleName !== targetRoleName;
     let profile = null;
-    const isCustomer = user.roleId && user.roleId.name.toLowerCase() === "customer";
 
-    // 2. Update matching Profile
-    if (isCustomer) {
+    if (targetRoleName === "customer") {
+      if (roleChanged && previousRoleName !== "admin") {
+        await StaffProfile.deleteOne({ userId: user._id });
+      }
       profile = await CustomerProfile.findOneAndUpdate(
         { userId: user._id },
         { address: address !== undefined ? address : "" },
         { new: true, upsert: true }
       );
+    } else if (targetRoleName === "admin") {
+      await StaffProfile.deleteOne({ userId: user._id });
+      await CustomerProfile.deleteOne({ userId: user._id });
+      profile = null;
     } else {
-      let staffProfile = await StaffProfile.findOne({ userId: user._id });
+      if (roleChanged && previousRoleName === "customer") {
+        await CustomerProfile.deleteOne({ userId: user._id });
+      }
 
+      let staffProfile = await StaffProfile.findOne({ userId: user._id });
       if (!staffProfile) {
         staffProfile = new StaffProfile({ userId: user._id });
       }
 
-      // Update staff profile fields
+      if (designationId) staffProfile.designationId = designationId;
       if (joinDate) staffProfile.joinDate = joinDate;
       if (endDate !== undefined) staffProfile.endDate = endDate === "" ? null : endDate;
-      if (salary) staffProfile.salary = salary;
+      if (salary !== undefined) staffProfile.salary = salary;
 
-      // If a new ID Proof file was uploaded
       if (req.file) {
         if (staffProfile.idProof) {
           safeDeleteFile(staffProfile.idProof);
@@ -240,13 +259,15 @@ exports.updateUser = catchAsync("updateUser", async (req, res, next) => {
       }
 
       await staffProfile.save();
-      profile = staffProfile;
+      profile = await StaffProfile.findById(staffProfile._id).populate("designationId", "name status");
     }
+
+    const populatedUser = await User.findById(user._id).populate("roleId", "name status");
 
     successResponse({
       res,
       data: {
-        ...user.toObject(),
+        ...populatedUser.toObject(),
         profile,
       },
     });

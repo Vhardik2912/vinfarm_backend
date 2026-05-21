@@ -14,6 +14,9 @@ const seedMaintenance = async () => {
     const room101 = await Room.findOne({ roomNumber: "101" });
     const propertyVinfram = await Property.findOne({ name: "Vinfram Resort" });
 
+    const count = await Maintenance.countDocuments({ isDeleted: false });
+    if (count > 0) return;
+
     const defaultRecords = [
       {
         reportedBy: adminUser._id,
@@ -28,28 +31,31 @@ const seedMaintenance = async () => {
       },
       {
         reportedBy: adminUser._id,
+        roomId: room101 ? room101._id : null,
+        propertyId: propertyVinfram ? propertyVinfram._id : null,
+        issueType: "Water Leakage",
+        description: "Bathroom pipe leak in room 101.",
+        priority: "Critical",
+        status: "In Progress",
+        cost: 500,
+        isScheduled: false,
+      },
+      {
+        reportedBy: adminUser._id,
         propertyId: propertyVinfram ? propertyVinfram._id : null,
         issueType: "Electrical Issue",
-        description: "Scheduled checkup of main generator and wiring.",
+        description: "Generator wiring inspection completed.",
         priority: "Medium",
-        status: "Pending",
+        status: "Resolved",
         cost: 1500,
         isScheduled: true,
-        scheduledDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // In 2 days
-      }
+        scheduledDate: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      },
     ];
 
     for (const recordData of defaultRecords) {
-      let record = await Maintenance.findOne({
-        reportedBy: recordData.reportedBy,
-        issueType: recordData.issueType,
-        description: recordData.description,
-      });
-
-      if (!record) {
-        await Maintenance.create(recordData);
-        console.log(`🔧 Maintenance record for '${recordData.issueType}' created successfully.`);
-      }
+      await Maintenance.create(recordData);
+      console.log(`🔧 Maintenance record for '${recordData.issueType}' created successfully.`);
     }
   } catch (error) {
     console.error("❌ Maintenance Seeder Error:", error.message);

@@ -7,6 +7,7 @@ const seedProperties = require("./propertySeeder");
 const seedRooms = require("./roomSeeder");
 const seedVehicles = require("./vehicleSeeder");
 const seedMaintenance = require("./maintenanceSeeder");
+const seedTransportBookings = require("./transportBookingSeeder");
 
 const runSeeders = async () => {
   try {
@@ -22,6 +23,7 @@ const runSeeders = async () => {
     await seedRooms();
     await seedVehicles();
     await seedMaintenance();
+    await seedTransportBookings();
 
     console.log("✅ System bootstrapper finished.");
   } catch (error) {

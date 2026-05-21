@@ -11,6 +11,11 @@ const seedStaff = async () => {
       return;
     }
 
+    const staffCount = await StaffProfile.countDocuments();
+    if (staffCount > 0) {
+      return;
+    }
+
     // Seed a default Manager
     const managerDesignation = await Designation.findOne({ name: "manager" });
     if (managerDesignation) {
