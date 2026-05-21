@@ -16,6 +16,10 @@ const {
   createMaintenanceSchema,
   updateMaintenanceSchema,
 } = require("./maintenanceValidation");
+const {
+  createCustomerSchema,
+  updateCustomerSchema,
+} = require("./customerValidation");
 
 module.exports = {
   loginSchema,
@@ -33,4 +37,7 @@ module.exports = {
   createFuelLogSchema,
   createMaintenanceSchema,
   updateMaintenanceSchema,
+  createCustomerSchema,
+  updateCustomerSchema,
 };
+

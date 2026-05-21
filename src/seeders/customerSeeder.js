@@ -21,6 +21,12 @@ const seedCustomer = async () => {
           userId: customerUser._id,
           address: "123 Resort Lane, Eco Valley",
           loyaltyPoints: 100,
+          roomType: "Family",
+          checkIn: new Date(),
+          checkOut: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days later
+          document: "/uploads/mock-document.pdf",
+          price: 5000,
+          status: "pending",
         });
         console.log("👤 Default Customer seeded successfully.");
       }

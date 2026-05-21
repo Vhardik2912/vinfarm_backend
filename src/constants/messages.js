@@ -88,6 +88,14 @@ const VALIDATION_MESSAGES = Object.freeze({
     START_DATE_REQUIRED: "Start date and time is required",
     END_DATE_REQUIRED: "End date and time is required",
     GUESTS_REQUIRED: "Number of guests is required",
+  },
+  CUSTOMER: {
+    ROOM_TYPE_REQUIRED: "Room type is required",
+    CHECKIN_REQUIRED: "Check-in date and time is required",
+    CHECKOUT_REQUIRED: "Check-out date and time is required",
+    DOCUMENT_REQUIRED: "Document (ID proof) upload is required",
+    PRICE_REQUIRED: "Price is required",
+    STATUS_REQUIRED: "Status is required",
   }
 });
 
