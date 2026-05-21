@@ -1,9 +1,17 @@
 const User = require("../models/User");
 const Role = require("../models/Role");
 const CustomerProfile = require("../models/CustomerProfile");
+const Booking = require("../models/Booking");
+const Room = require("../models/Room");
 const { catchAsync, successResponse } = require("../utils/responseHelper");
 const AppError = require("../utils/AppError");
 const { sendBookingEmails } = require("../utils/emailHelper");
+const {
+  createPendingBookingForProfile,
+  CUSTOMER_STATUS,
+  ROOM_BOOKING_STATUS,
+  BOOKING_STATUS,
+} = require("../utils/websiteBookingHelper");
 const fs = require("fs");
 const path = require("path");
 
@@ -43,6 +51,10 @@ const formatCustomer = (profile) => {
       document: obj.document || null,
       price: obj.price || 0,
       status: obj.status || "pending",
+      source: obj.source || "admin",
+      numberOfGuests: obj.numberOfGuests || "1",
+      country: obj.country || "",
+      countryCode: obj.countryCode || "+91",
       createdAt: obj.createdAt,
       updatedAt: obj.updatedAt
     }
@@ -359,6 +371,14 @@ exports.submitWebsiteBooking = catchAsync("submitWebsiteBooking", async (req, re
     status: "pending",
   });
 
+  // ── Create pending Booking so manager Approval Requests can process it ───
+  const pendingBooking = await createPendingBookingForProfile(
+    user,
+    profile,
+    customerRole,
+    roomType
+  );
+
   // ── Send branded HTML emails (fire-and-forget) ──────────────────────────────
   const customerData = { name: user.name, email: user.email, phone: user.phone };
   const roomMock = { roomNumber: "—", roomType: dbRoomType, basePrice: 0 };
@@ -400,6 +420,102 @@ exports.submitWebsiteBooking = catchAsync("submitWebsiteBooking", async (req, re
       checkIn: profile.checkIn,
       checkOut: profile.checkOut,
       status: profile.status,
+      bookingId: pendingBooking?._id || null,
+      hasPendingBooking: Boolean(pendingBooking),
     },
+  });
+});
+
+// @desc    Approve website / profile-only request (create booking if needed, then confirm)
+// @route   POST /api/customer/approve-request/:id
+// @access  Private
+exports.approveWebsiteRequest = catchAsync("approveWebsiteRequest", async (req, res, next) => {
+  const id = req.params.id;
+  const profile = await CustomerProfile.findOne({
+    $or: [{ userId: id }, { _id: id }],
+  });
+  if (!profile) throw new AppError("Customer request not found", 404);
+
+  const user = await User.findById(profile.userId);
+  if (!user) throw new AppError("Customer user not found", 404);
+
+  const customerRole = await Role.findById(user.roleId);
+
+  let booking = await Booking.findOne({
+    customerId: user._id,
+    isDeleted: false,
+    bookingStatus: ROOM_BOOKING_STATUS.PENDING,
+  }).sort({ createdAt: -1 });
+
+  if (!booking) {
+    booking = await createPendingBookingForProfile(user, profile, customerRole);
+    if (!booking) {
+      throw new AppError(
+        "No available room for the requested dates and room type. Assign a room manually or reject the request.",
+        400
+      );
+    }
+  }
+
+  if (booking.bookingStatus !== ROOM_BOOKING_STATUS.PENDING) {
+    throw new AppError(`Booking is already ${booking.bookingStatus}`, 400);
+  }
+
+  booking.bookingStatus = ROOM_BOOKING_STATUS.CONFIRMED;
+  await booking.save();
+
+  const room = await Room.findById(booking.roomId);
+  if (room) {
+    room.bookingStatus = BOOKING_STATUS.BOOKED;
+    await room.save();
+  }
+
+  profile.status = CUSTOMER_STATUS.CONFIRMED;
+  await profile.save();
+
+  const populated = await Booking.findById(booking._id)
+    .populate("customerId", "name email phone")
+    .populate("roomId", "roomNumber roomType basePrice");
+
+  successResponse({
+    res,
+    message: "Booking request approved successfully",
+    data: populated,
+  });
+});
+
+// @desc    Reject website / profile request
+// @route   POST /api/customer/reject-request/:id
+// @access  Private
+exports.rejectWebsiteRequest = catchAsync("rejectWebsiteRequest", async (req, res, next) => {
+  const id = req.params.id;
+  const { reason } = req.body || {};
+
+  const profile = await CustomerProfile.findOne({
+    $or: [{ userId: id }, { _id: id }],
+  });
+  if (!profile) throw new AppError("Customer request not found", 404);
+
+  const pendingBooking = await Booking.findOne({
+    customerId: profile.userId,
+    isDeleted: false,
+    bookingStatus: ROOM_BOOKING_STATUS.PENDING,
+  });
+
+  if (pendingBooking) {
+    pendingBooking.bookingStatus = ROOM_BOOKING_STATUS.CANCELLED;
+    pendingBooking.cancellationReason =
+      reason || "Rejected by manager — website request not approved";
+    pendingBooking.cancelledAt = new Date();
+    await pendingBooking.save();
+  }
+
+  profile.status = CUSTOMER_STATUS.CANCELLED;
+  await profile.save();
+
+  successResponse({
+    res,
+    message: "Booking request rejected",
+    data: { profileId: profile._id, userId: profile.userId },
   });
 });

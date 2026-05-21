@@ -9,7 +9,9 @@ const {
   createCustomer,
   updateCustomer,
   deleteCustomer,
-  submitWebsiteBooking
+  submitWebsiteBooking,
+  approveWebsiteRequest,
+  rejectWebsiteRequest,
 } = require("../controllers/customerController");
 
 const router = express.Router();
@@ -22,6 +24,8 @@ router.use(protect);
 
 router.get("/get", getCustomers);
 router.get("/getid/:id", getCustomer);
+router.post("/approve-request/:id", approveWebsiteRequest);
+router.post("/reject-request/:id", rejectWebsiteRequest);
 router.post("/post", upload.single("document"), validate(createCustomerSchema), createCustomer);
 router.put("/put/:id", upload.single("document"), validate(updateCustomerSchema), updateCustomer);
 router.delete("/delete/:id", deleteCustomer);

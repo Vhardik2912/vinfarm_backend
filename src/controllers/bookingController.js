@@ -3,8 +3,9 @@ const Room = require("../models/Room");
 const User = require("../models/User");
 const { catchAsync, successResponse } = require("../utils/responseHelper");
 const AppError = require("../utils/AppError");
-const { ROOM_BOOKING_STATUS, PAYMENT_STATUS, REFUND_STATUS } = require("../constants/booking");
+const { ROOM_BOOKING_STATUS, PAYMENT_STATUS, REFUND_STATUS, CUSTOMER_STATUS } = require("../constants/booking");
 const { BOOKING_STATUS } = require("../constants/constants");
+const { syncProfileStatusForCustomer } = require("../utils/websiteBookingHelper");
 
 // ─── Helper: Calculate total amount ────────────────────────────────────────────
 const calculateAmount = (basePrice, nights, extraServicesAmount = 0, discountAmount = 0) => {
@@ -171,6 +172,8 @@ exports.confirmBooking = catchAsync("confirmBooking", async (req, res, next) => 
   const room = await Room.findById(booking.roomId);
   if (room) { room.bookingStatus = BOOKING_STATUS.BOOKED; await room.save(); }
 
+  await syncProfileStatusForCustomer(booking.customerId, CUSTOMER_STATUS.CONFIRMED);
+
   successResponse({ res, message: "Booking confirmed successfully", data: booking });
 });
 
@@ -315,6 +318,8 @@ exports.cancelBooking = catchAsync("cancelBooking", async (req, res, next) => {
   }
 
   await booking.save();
+
+  await syncProfileStatusForCustomer(booking.customerId, CUSTOMER_STATUS.CANCELLED);
 
   successResponse({ res, message: "Booking cancelled successfully", data: booking });
 });
