@@ -41,6 +41,7 @@ const seedCustomer = async () => {
       return;
     }
 
+<<<<<<< HEAD
     const profileCount = await CustomerProfile.countDocuments();
     if (profileCount > 0) {
       return;
@@ -65,6 +66,21 @@ const seedCustomer = async () => {
       });
 
       console.log(`👤 Customer ${customer.email} seeded successfully.`);
+=======
+        await CustomerProfile.create({
+          userId: customerUser._id,
+          address: "123 Resort Lane, Eco Valley",
+          loyaltyPoints: 100,
+          roomType: "Family",
+          checkIn: new Date(),
+          checkOut: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days later
+          document: "/uploads/mock-document.pdf",
+          price: 5000,
+          status: "pending",
+        });
+        console.log("👤 Default Customer seeded successfully.");
+      }
+>>>>>>> 97ca04ff6b977150f2b0e055145330b5d7ded1c5
     }
   } catch (error) {
     console.error("❌ Customer Seeder Error:", error.message);

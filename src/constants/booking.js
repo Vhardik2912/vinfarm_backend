@@ -31,9 +31,18 @@ const EXTRA_SERVICES = Object.freeze([
   "Extra Bed",
 ]);
 
+const CUSTOMER_STATUS = Object.freeze({
+  PENDING: "pending",
+  CONFIRMED: "confrom",
+  CHECK_IN: "check in",
+  OUT: "out",
+  CANCELLED: "cancelled",
+});
+
 module.exports = {
   ROOM_BOOKING_STATUS,
   PAYMENT_STATUS,
   REFUND_STATUS,
   EXTRA_SERVICES,
+  CUSTOMER_STATUS,
 };
