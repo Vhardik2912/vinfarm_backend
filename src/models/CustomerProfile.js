@@ -14,10 +14,7 @@ const customerProfileSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    loyaltyPoints: {
-      type: Number,
-      default: 0,
-    },
+
 
     roomType: {
       type: String,
@@ -38,14 +35,58 @@ const customerProfileSchema = new mongoose.Schema(
       required: [true, VALIDATION_MESSAGES.CUSTOMER.CHECKOUT_REQUIRED],
     },
 
+    // ─── Website Booking Fields ──────────────────────────────────────────────────
+    name: {
+      type: String,
+      default: "",
+    },
+    email: {
+      type: String,
+      default: "",
+    },
+    phone: {
+      type: String,
+      default: "",
+    },
+    countryCode: {
+      type: String,
+      default: "+91",
+    },
+    country: {
+      type: String,
+      default: "India",
+    },
+    numberOfGuests: {
+      type: String,
+      default: "1 Person",
+    },
+
+    // ─── Document (optional for website bookings, required for admin-created) ────
     document: {
       type: String,
-      required: [true, VALIDATION_MESSAGES.CUSTOMER.DOCUMENT_REQUIRED],
+      default: null,
     },
 
     price: {
       type: Number,
-      required: [true, VALIDATION_MESSAGES.CUSTOMER.PRICE_REQUIRED],
+      default: 0,
+    },
+
+    // ─── Booking Source ──────────────────────────────────────────────────────────
+    source: {
+      type: String,
+      enum: ["admin", "website"],
+      default: "admin",
+    },
+
+    // ─── Email Tracking ─────────────────────────────────────────────────────────
+    emailSentToCustomer: {
+      type: Boolean,
+      default: false,
+    },
+    emailSentToAdmin: {
+      type: Boolean,
+      default: false,
     },
 
     status: {

@@ -3,6 +3,7 @@ const Role = require("../models/Role");
 const CustomerProfile = require("../models/CustomerProfile");
 const { catchAsync, successResponse } = require("../utils/responseHelper");
 const AppError = require("../utils/AppError");
+const { sendBookingEmails } = require("../utils/emailHelper");
 const fs = require("fs");
 const path = require("path");
 
@@ -22,7 +23,7 @@ const formatCustomer = (profile) => {
   const obj = profile.toObject ? profile.toObject() : profile;
   const user = obj.userId;
   delete obj.userId;
-  
+
   return {
     _id: user?._id || null,
     name: user?.name || "",
@@ -272,5 +273,133 @@ exports.deleteCustomer = catchAsync("deleteCustomer", async (req, res, next) => 
   successResponse({
     res,
     message: "Customer account and profile deleted successfully",
+  });
+});
+
+// ─── Website Room Type → DB Room Type mapping ─────────────────────────────────
+const WEBSITE_ROOM_TYPE_MAP = {
+  "family villa": "Family",
+  "bachelor suite": "Bachelor",
+  "luxury tent": "Tent",
+  "vip palace room": "VIP Room",
+};
+
+// @desc    Submit booking from public website (NO auth, NO document)
+// @route   POST /api/customer/website-booking
+// @access  Public
+exports.submitWebsiteBooking = catchAsync("submitWebsiteBooking", async (req, res, next) => {
+  const {
+    name,
+    email,
+    phone,
+    countryCode,
+    country,
+    checkIn,
+    checkOut,
+    numberOfGuests,
+    roomType,
+  } = req.body;
+
+  // ── Validation ──────────────────────────────────────────────────────────────
+  if (!name || !email || !phone || !checkIn || !checkOut || !numberOfGuests || !roomType) {
+    throw new AppError(
+      "Please provide name, email, phone, checkIn, checkOut, numberOfGuests, and roomType.",
+      400
+    );
+  }
+
+  const checkInDate = new Date(checkIn);
+  const checkOutDate = new Date(checkOut);
+  if (isNaN(checkInDate) || isNaN(checkOutDate)) {
+    throw new AppError("Invalid date format.", 400);
+  }
+  if (checkOutDate <= checkInDate) {
+    throw new AppError("Check-out date must be after check-in date.", 400);
+  }
+
+  // Map website room type label → DB enum value
+  const dbRoomType =
+    WEBSITE_ROOM_TYPE_MAP[roomType.toLowerCase().trim()] || "Family";
+
+  // ── Find or create "customer" role ──────────────────────────────────────────
+  let customerRole = await Role.findOne({ name: "customer" });
+  if (!customerRole) {
+    customerRole = await Role.create({ name: "customer", status: true });
+  }
+
+  // ── Check if email already exists ───────────────────────────────────────────
+  let user = await User.findOne({ email: email.toLowerCase().trim() });
+
+  if (user) {
+    throw new AppError("You have already sent a booking request with this email address.", 400);
+  }
+
+  // Create new User
+  user = await User.create({
+    name: name.trim(),
+    email: email.toLowerCase().trim(),
+    phone: `${countryCode || "+91"} ${phone.trim()}`,
+    roleId: customerRole._id,
+    status: true,
+  });
+
+  // ── Create Customer Profile ─────────────────────────────────────────────────
+  const profile = await CustomerProfile.create({
+    userId: user._id,
+    name: name.trim(),
+    email: email.toLowerCase().trim(),
+    phone: phone.trim(),
+    roomType: dbRoomType,
+    checkIn: checkInDate,
+    checkOut: checkOutDate,
+    countryCode: countryCode || "+91",
+    country: country || "India",
+    numberOfGuests: String(numberOfGuests),
+    source: "website",
+    status: "pending",
+  });
+
+  // ── Send branded HTML emails (fire-and-forget) ──────────────────────────────
+  const customerData = { name: user.name, email: user.email, phone: user.phone };
+  const roomMock = { roomNumber: "—", roomType: dbRoomType, basePrice: 0 };
+  const bookingMock = {
+    checkInDate,
+    checkOutDate,
+    numberOfGuests: String(numberOfGuests),
+    totalAmount: 0,
+  };
+
+  sendBookingEmails(bookingMock, roomMock, customerData)
+    .then((result) => {
+      if (result.success) {
+        CustomerProfile.findByIdAndUpdate(profile._id, {
+          emailSentToCustomer: true,
+          emailSentToAdmin: true,
+        }).catch(() => { });
+
+        if (!result.hasSmtpConfig) {
+          console.log("📧 [DEV] Customer email preview:", result.customerMailPreview);
+          console.log("📧 [DEV] Admin email preview:   ", result.adminMailPreview);
+        }
+      }
+    })
+    .catch(() => { });
+
+  // ── Response ────────────────────────────────────────────────────────────────
+  successResponse({
+    res,
+    statusCode: 201,
+    message: "Your booking request has been received! We will contact you shortly.",
+    data: {
+      customerId: user._id,
+      profileId: profile._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      roomType: dbRoomType,
+      checkIn: profile.checkIn,
+      checkOut: profile.checkOut,
+      status: profile.status,
+    },
   });
 });

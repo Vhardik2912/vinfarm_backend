@@ -8,10 +8,14 @@ const {
   getCustomer,
   createCustomer,
   updateCustomer,
-  deleteCustomer
+  deleteCustomer,
+  submitWebsiteBooking
 } = require("../controllers/customerController");
 
 const router = express.Router();
+
+// ─── PUBLIC: Website booking form submission (no auth) ────────────────────────
+router.post("/website-booking", submitWebsiteBooking);
 
 // ─── Apply auth middleware to all customer routes ─────────────────────────────
 router.use(protect);
