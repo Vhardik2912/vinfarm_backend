@@ -48,7 +48,10 @@ const calculateFarmBookingPrice = (startDate, endDate, guestsCount, addons) => {
 // @route   GET /api/farm-booking/get
 // @access  Public
 exports.getFarmBookings = catchAsync("getFarmBookings", async (req, res, next) => {
-  const bookings = await FarmBooking.find({ isDeleted: false })
+  const includeDeleted = req.query.includeDeleted === "true";
+  const filter = includeDeleted ? {} : { isDeleted: false };
+
+  const bookings = await FarmBooking.find(filter)
     .populate("customerId", "name email phone")
     .sort({ createdAt: -1 });
 

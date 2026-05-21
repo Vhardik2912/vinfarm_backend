@@ -23,65 +23,67 @@ const defaultCustomers = [
     phone: "9876500003",
     address: "9 Green Valley Lane, Bangalore",
     loyaltyPoints: 200,
-  },
-  {
-    name: "John Doe",
-    email: "customer@example.com",
-    phone: "1234567890",
-    address: "123 Resort Lane, Eco Valley",
-    loyaltyPoints: 100,
-  },
+  }
+ 
 ];
 
 const seedCustomer = async () => {
   try {
+    // Find customer role
     const customerRole = await Role.findOne({ name: "customer" });
+
     if (!customerRole) {
       console.error("❌ Customer role not found. Run roleSeeder first.");
       return;
     }
 
-<<<<<<< HEAD
-    const profileCount = await CustomerProfile.countDocuments();
-    if (profileCount > 0) {
-      return;
-    }
-
     for (const customer of defaultCustomers) {
-      const existing = await User.findOne({ email: customer.email });
-      if (existing) continue;
-
-      const customerUser = await User.create({
-        name: customer.name,
+      // Check if user already exists
+      let customerUser = await User.findOne({
         email: customer.email,
-        phone: customer.phone,
-        roleId: customerRole._id,
-        isActive: true,
       });
 
-      await CustomerProfile.create({
+      // Create user if not exists
+      if (!customerUser) {
+        customerUser = await User.create({
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone,
+          password: "123456", // default password
+          roleId: customerRole._id,
+          status: "active",
+        });
+
+        console.log(`✅ User created: ${customer.name}`);
+      }
+
+      // Check if profile already exists
+      const existingProfile = await CustomerProfile.findOne({
         userId: customerUser._id,
-        address: customer.address,
-        loyaltyPoints: customer.loyaltyPoints,
       });
 
-      console.log(`👤 Customer ${customer.email} seeded successfully.`);
-=======
+      if (!existingProfile) {
         await CustomerProfile.create({
           userId: customerUser._id,
-          address: "123 Resort Lane, Eco Valley",
-          loyaltyPoints: 100,
+          address: customer.address,
+          loyaltyPoints: customer.loyaltyPoints,
           roomType: "Family",
           checkIn: new Date(),
-          checkOut: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days later
+          checkOut: new Date(
+            Date.now() + 2 * 24 * 60 * 60 * 1000
+          ), // 2 days later
           document: "/uploads/mock-document.pdf",
           price: 5000,
           status: "pending",
         });
-        console.log("👤 Default Customer seeded successfully.");
+
+        console.log(
+          `👤 Customer profile created: ${customer.name}`
+        );
       }
->>>>>>> 97ca04ff6b977150f2b0e055145330b5d7ded1c5
     }
+
+    console.log("🎉 Default customers seeded successfully.");
   } catch (error) {
     console.error("❌ Customer Seeder Error:", error.message);
   }

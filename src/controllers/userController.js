@@ -140,12 +140,7 @@ exports.createUser = catchAsync("createUser", async (req, res, next) => {
     let profile = null;
 
     // 6. Create Profile based on role type
-    if (isCustomer) {
-      profile = await CustomerProfile.create({
-        userId: user._id,
-        address: address || "",
-      });
-    } else {
+    if (!isCustomer) {
       profile = await StaffProfile.create({
         userId: user._id,
         designationId: designationId || null,
@@ -227,11 +222,17 @@ exports.updateUser = catchAsync("updateUser", async (req, res, next) => {
       if (roleChanged && previousRoleName !== "admin") {
         await StaffProfile.deleteOne({ userId: user._id });
       }
-      profile = await CustomerProfile.findOneAndUpdate(
-        { userId: user._id },
-        { address: address !== undefined ? address : "" },
-        { new: true, upsert: true }
-      );
+      const existingCustomerProfile = await CustomerProfile.findOne({ userId: user._id });
+      if (existingCustomerProfile) {
+        profile = await CustomerProfile.findOneAndUpdate(
+          { userId: user._id },
+          { address: address !== undefined ? address : "" },
+          { new: true }
+        );
+      } else if (address !== undefined) {
+        // Do not create a full CustomerProfile here because required booking fields are managed separately.
+        profile = null;
+      }
     } else if (targetRoleName === "admin") {
       await StaffProfile.deleteOne({ userId: user._id });
       await CustomerProfile.deleteOne({ userId: user._id });
