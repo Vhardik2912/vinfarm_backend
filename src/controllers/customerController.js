@@ -367,7 +367,7 @@ if (!user) {
     checkOut: checkOutDate,
     countryCode: countryCode || "+91",
     country: country || "India",
-    numberOfGuests: String(numberOfGuests),
+    numberOfGuests: String(numberOfGuests) || "1 Person",
     source: "website",
     status: "pending",
   });
