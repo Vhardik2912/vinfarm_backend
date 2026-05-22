@@ -279,17 +279,122 @@ const getAdminTemplate = (booking, room, customer) => `<!DOCTYPE html>
 </body>
 </html>`;
 
-// ─── Main export: sendBookingEmails ───────────────────────────────────────────
-const sendBookingEmails = async (booking, room, customer) => {
-  let transporter;
+// ─── Booking Confirmation Template ──────────────────────────────────────────
+const getConfirmationTemplate = (booking, room, customer) => `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Booking Confirmed — Vinfarm Resort</title>
+  <style>
+    * { box-sizing: border-box; }
+    body, table, td { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; border-collapse: collapse !important; }
+    img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+    body { margin: 0 !important; padding: 0 !important; background-color: #f5f3ee; }
+    @media screen and (max-width: 600px) {
+      .email-container { width: 100% !important; }
+      .mobile-pad { padding: 24px 16px !important; }
+      .logo-img { max-width: 140px !important; }
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f3ee;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f3ee;">
+    <tr>
+      <td align="center" style="padding:40px 16px;">
 
-  const hasSmtpConfig =
-    process.env.SMTP_HOST &&
-    process.env.SMTP_USER &&
-    process.env.SMTP_PASS;
+        <!-- Main Card -->
+        <table role="presentation" class="email-container" width="600" cellpadding="0" cellspacing="0" border="0"
+          style="max-width:600px;width:100%;background-color:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 32px rgba(0,0,0,0.08);">
+
+          <!-- HEADER -->
+          <tr>
+            <td align="center" style="background-color:#1a4531;padding:36px 30px 28px 30px;border-bottom:4px solid #c5a155;">
+              <img src="cid:${LOGO_CID}" class="logo-img" alt="Vinfarm Resort" width="180" style="display:block;max-width:180px;height:auto;margin:0 auto;">
+              <p style="margin:14px 0 0 0;color:#c5a155;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.25em;text-transform:uppercase;">Luxury Resort &amp; Farm Stay</p>
+            </td>
+          </tr>
+
+          <!-- GREETING BAND -->
+          <tr>
+            <td style="background-color:#f3f9f6;padding:28px 40px 20px 40px;border-bottom:1px solid #e0ede6;">
+              <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:24px;color:#1a4531;font-weight:normal;">
+                Booking Confirmed! 🌟
+              </p>
+              <p style="margin:12px 0 0 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#444444;line-height:1.7;">
+                Dear <strong>${customer.name}</strong>, we are delighted to confirm your stay at Vinfarm Resort. We look forward to welcoming you to our sanctuary of peace and luxury.
+              </p>
+            </td>
+          </tr>
+
+          <!-- BOOKING DETAILS -->
+          <tr>
+            <td class="mobile-pad" style="padding:32px 40px;">
+
+              <p style="margin:0 0 16px 0;font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#1a4531;">
+                Reservation Summary
+              </p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                style="background-color:#f9f7f3;border-radius:12px;border:1px solid #ede9e0;overflow:hidden;">
+                <tr>
+                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#888888;font-weight:600;border-bottom:1px solid #ede9e0;width:38%;">Accommodation</td>
+                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1a1a1a;font-weight:700;border-bottom:1px solid #ede9e0;">${room.roomType}</td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#888888;font-weight:600;border-bottom:1px solid #ede9e0;">Check-In</td>
+                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1a1a1a;font-weight:700;border-bottom:1px solid #ede9e0;">${fmtDate(booking.checkInDate)}</td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#888888;font-weight:600;border-bottom:1px solid #ede9e0;">Check-Out</td>
+                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1a1a1a;font-weight:700;border-bottom:1px solid #ede9e0;">${fmtDate(booking.checkOutDate)}</td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#888888;font-weight:600;border-bottom:1px solid #ede9e0;">Guests</td>
+                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1a1a1a;font-weight:700;border-bottom:1px solid #ede9e0;">${booking.numberOfGuests}</td>
+                </tr>
+              </table>
+
+              <!-- ID PROOF NOTICE -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                style="margin-top:24px;background-color:#fff9f0;border-radius:10px;border-left:4px solid #c5a155;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#7a5c1a;line-height:1.6;">
+                      <strong style="color:#1a4531;">Important Note:</strong> Please ensure all guests carry a valid government-issued ID proof (Aadhar Card, Driving License, or Passport) to be presented at the time of check-in.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td align="center" style="background-color:#111111;padding:24px 30px;border-top:1px solid #222222;">
+              <p style="margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#888888;">
+                © 2026 Vinfarm Resort &amp; Farm Stay &nbsp;·&nbsp; Nashik, Maharashtra
+              </p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+// ─── Shared: Create Transporter ──────────────────────────────────────────────
+const createTransporter = async () => {
+  const hasSmtpConfig = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS;
 
   if (hasSmtpConfig) {
-    transporter = nodemailer.createTransport({
+    return nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT || "587"),
       secure: process.env.SMTP_PORT === "465",
@@ -298,11 +403,9 @@ const sendBookingEmails = async (booking, room, customer) => {
         pass: process.env.SMTP_PASS,
       },
     });
-    console.log("Email Utility: Using SMTP configuration from environment.");
   } else {
-    console.log("Email Utility: No SMTP configs. Setting up Ethereal test account...");
     const testAccount = await nodemailer.createTestAccount();
-    transporter = nodemailer.createTransport({
+    return nodemailer.createTransport({
       host: "smtp.ethereal.email",
       port: 587,
       secure: false,
@@ -312,17 +415,18 @@ const sendBookingEmails = async (booking, room, customer) => {
       },
     });
   }
+};
 
+// ─── Export: sendBookingEmails (Pending/Admin Alert) ───────────────────────────
+const sendBookingEmails = async (booking, room, customer) => {
+  const transporter = await createTransporter();
+  const hasSmtpConfig = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS;
   const fromAddress = process.env.SMTP_FROM || '"Vinfarm Resort" <concierge@vin-farm.com>';
   const adminEmail = process.env.VINFARM_ADMIN_EMAIL || "admin@resort.com";
 
-  // Logo attachment (CID inline)
-  const logoAttachment = fs.existsSync(LOGO_PATH)
-    ? [{ filename: "logo.png", path: LOGO_PATH, cid: LOGO_CID }]
-    : [];
+  const logoAttachment = fs.existsSync(LOGO_PATH) ? [{ filename: "logo.png", path: LOGO_PATH, cid: LOGO_CID }] : [];
 
   try {
-    // 1. Customer confirmation email
     const customerMailInfo = await transporter.sendMail({
       from: fromAddress,
       to: customer.email,
@@ -330,34 +434,45 @@ const sendBookingEmails = async (booking, room, customer) => {
       html: getCustomerTemplate(booking, room, customer),
       attachments: logoAttachment,
     });
-    console.log("Email Utility: Customer email sent successfully.");
-    if (!hasSmtpConfig) {
-      console.log("Email Utility: Customer preview →", nodemailer.getTestMessageUrl(customerMailInfo));
-    }
 
-    // 2. Admin notification email
-    const adminMailInfo = await transporter.sendMail({
+    await transporter.sendMail({
       from: fromAddress,
       to: adminEmail,
       subject: `🚨 New Booking — ${customer.name} (${room.roomType})`,
       html: getAdminTemplate(booking, room, customer),
       attachments: logoAttachment,
     });
-    console.log("Email Utility: Admin notification sent successfully.");
-    if (!hasSmtpConfig) {
-      console.log("Email Utility: Admin preview →", nodemailer.getTestMessageUrl(adminMailInfo));
-    }
 
-    return {
-      success: true,
-      hasSmtpConfig,
-      customerMailPreview: !hasSmtpConfig ? nodemailer.getTestMessageUrl(customerMailInfo) : null,
-      adminMailPreview: !hasSmtpConfig ? nodemailer.getTestMessageUrl(adminMailInfo) : null,
-    };
+    return { success: true, customerMailPreview: !hasSmtpConfig ? nodemailer.getTestMessageUrl(customerMailInfo) : null };
   } catch (error) {
-    console.error("Email Utility Error: Failed to send booking emails:", error);
+    console.error("Email Utility Error:", error);
     return { success: false, error: error.message };
   }
 };
 
-module.exports = { sendBookingEmails };
+// ─── Export: sendBookingConfirmationEmail ──────────────────────────────────────
+const sendBookingConfirmationEmail = async (booking, room, customer) => {
+  const transporter = await createTransporter();
+  const hasSmtpConfig = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS;
+  const fromAddress = process.env.SMTP_FROM || '"Vinfarm Resort" <concierge@vin-farm.com>';
+
+  const logoAttachment = fs.existsSync(LOGO_PATH) ? [{ filename: "logo.png", path: LOGO_PATH, cid: LOGO_CID }] : [];
+
+  try {
+    const mailInfo = await transporter.sendMail({
+      from: fromAddress,
+      to: customer.email,
+      subject: "Booking Confirmed! Your Stay at Vinfarm Resort 🌟",
+      html: getConfirmationTemplate(booking, room, customer),
+      attachments: logoAttachment,
+    });
+
+    console.log("Email Utility: Confirmation email sent.");
+    return { success: true, preview: !hasSmtpConfig ? nodemailer.getTestMessageUrl(mailInfo) : null };
+  } catch (error) {
+    console.error("Email Utility Error:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+module.exports = { sendBookingEmails, sendBookingConfirmationEmail };

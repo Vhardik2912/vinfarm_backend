@@ -6,6 +6,7 @@ const AppError = require("../utils/AppError");
 const { ROOM_BOOKING_STATUS, PAYMENT_STATUS, REFUND_STATUS, CUSTOMER_STATUS } = require("../constants/booking");
 const { BOOKING_STATUS } = require("../constants/constants");
 const { syncProfileStatusForCustomer } = require("../utils/websiteBookingHelper");
+const { sendBookingConfirmationEmail, sendBookingEmails } = require("../utils/emailHelper");
 
 // ─── Helper: Calculate total amount ────────────────────────────────────────────
 const calculateAmount = (basePrice, nights, extraServicesAmount = 0, discountAmount = 0) => {
@@ -136,10 +137,16 @@ exports.createBooking = catchAsync("createBooking", async (req, res, next) => {
     bookingStatus: status,
   });
 
-  // If instant booking, mark room as Booked
+  // If instant booking, mark room as Booked and send confirmation email
   if (instantBooking) {
     room.bookingStatus = BOOKING_STATUS.BOOKED;
     await room.save();
+
+    // Send confirmation email for instant bookings
+    await sendBookingConfirmationEmail(booking, room, customer);
+  } else {
+    // Send pending/request emails for non-instant bookings
+    await sendBookingEmails(booking, room, customer);
   }
 
   const populatedBooking = await Booking.findById(booking._id)
@@ -173,6 +180,12 @@ exports.confirmBooking = catchAsync("confirmBooking", async (req, res, next) => 
   if (room) { room.bookingStatus = BOOKING_STATUS.BOOKED; await room.save(); }
 
   await syncProfileStatusForCustomer(booking.customerId, CUSTOMER_STATUS.CONFIRMED);
+
+  // Send confirmation email
+  const customer = await User.findById(booking.customerId);
+  if (customer && customer.email && room) {
+    await sendBookingConfirmationEmail(booking, room, customer);
+  }
 
   successResponse({ res, message: "Booking confirmed successfully", data: booking });
 });
