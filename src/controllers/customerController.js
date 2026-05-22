@@ -342,10 +342,10 @@ exports.submitWebsiteBooking = catchAsync("submitWebsiteBooking", async (req, re
   // ── Check if email already exists ───────────────────────────────────────────
   let user = await User.findOne({ email: email.toLowerCase().trim() });
 
-  if (user) {
-    throw new AppError("You have already sent a booking request with this email address.", 400);
-  }
-
+  // if (user) {
+  //   throw new AppError("You have already sent a booking request with this email address.", 400);
+  // }
+if (!user) {
   // Create new User
   user = await User.create({
     name: name.trim(),
@@ -370,7 +370,7 @@ exports.submitWebsiteBooking = catchAsync("submitWebsiteBooking", async (req, re
     source: "website",
     status: "pending",
   });
-
+}
   // ── Create pending Booking so manager Approval Requests can process it ───
   const pendingBooking = await createPendingBookingForProfile(
     user,

@@ -92,19 +92,34 @@ exports.createBooking = catchAsync("createBooking", async (req, res, next) => {
   // Verify room exists and is available
   const room = await Room.findOne({ _id: roomId, isDeleted: false });
   if (!room) throw new AppError("Room not found", 404);
-  if (room.bookingStatus !== BOOKING_STATUS.AVAILABLE) {
-    throw new AppError(`Room is currently ${room.bookingStatus} and not available`, 400);
-  }
+  // if (room.bookingStatus !== BOOKING_STATUS.AVAILABLE) {
+  //   throw new AppError(`Room is currently ${room.bookingStatus} and not available`, 400);
+  // }
 
   // Check for date conflicts
+  // const conflictingBooking = await Booking.findOne({
+  //   roomId,
+  //   isDeleted: false,
+  //   bookingStatus: { $in: [ROOM_BOOKING_STATUS.CONFIRMED, ROOM_BOOKING_STATUS.CHECKED_IN, ROOM_BOOKING_STATUS.PENDING] },
+  //   $or: [
+  //     { checkInDate: { $lt: checkOut }, checkOutDate: { $gt: checkIn } },
+  //   ],
+  // });
   const conflictingBooking = await Booking.findOne({
-    roomId,
-    isDeleted: false,
-    bookingStatus: { $in: [ROOM_BOOKING_STATUS.CONFIRMED, ROOM_BOOKING_STATUS.CHECKED_IN, ROOM_BOOKING_STATUS.PENDING] },
-    $or: [
-      { checkInDate: { $lt: checkOut }, checkOutDate: { $gt: checkIn } },
+  roomId,
+  isDeleted: false,
+  bookingStatus: {
+    $in: [
+      ROOM_BOOKING_STATUS.CONFIRMED,
+      ROOM_BOOKING_STATUS.CHECKED_IN,
+      ROOM_BOOKING_STATUS.PENDING,
     ],
-  });
+  },
+
+  // Date overlap validation
+  checkInDate: { $lt: checkOut },
+  checkOutDate: { $gt: checkIn },
+});
   if (conflictingBooking) {
     throw new AppError("Room is already booked for the selected dates", 400);
   }
