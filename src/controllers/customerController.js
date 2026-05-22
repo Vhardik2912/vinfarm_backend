@@ -345,6 +345,7 @@ exports.submitWebsiteBooking = catchAsync("submitWebsiteBooking", async (req, re
   // if (user) {
   //   throw new AppError("You have already sent a booking request with this email address.", 400);
   // }
+  let profile;
 if (!user) {
   // Create new User
   user = await User.create({
@@ -356,7 +357,7 @@ if (!user) {
   });
 
   // ── Create Customer Profile ─────────────────────────────────────────────────
-  const profile = await CustomerProfile.create({
+  profile = await CustomerProfile.create({
     userId: user._id,
     name: name.trim(),
     email: email.toLowerCase().trim(),
