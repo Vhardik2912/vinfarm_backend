@@ -345,33 +345,52 @@ exports.submitWebsiteBooking = catchAsync("submitWebsiteBooking", async (req, re
   // if (user) {
   //   throw new AppError("You have already sent a booking request with this email address.", 400);
   // }
-  let profile;
-if (!user) {
-  // Create new User
-  user = await User.create({
-    name: name.trim(),
-    email: email.toLowerCase().trim(),
-    phone: `${countryCode || "+91"} ${phone.trim()}`,
-    roleId: customerRole._id,
-    status: true,
+  if (!user) {
+    // Create new User
+    user = await User.create({
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      phone: `${countryCode || "+91"} ${phone.trim()}`,
+      roleId: customerRole._id,
+      status: true,
+    });
+  }
+  let profile = await CustomerProfile.findOne({
+    userId: user._id,
+  });
+  // ── Create Customer Profile ─────────────────────────────────────────────────
+  if (!profile) {
+    await CustomerProfile.create({
+      userId: user._id,
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      phone: phone.trim(),
+      roomType: dbRoomType,
+      checkIn: checkInDate,
+      checkOut: checkOutDate,
+      countryCode: countryCode || "+91",
+      country: country || "India",
+      numberOfGuests: String(numberOfGuests) || "1 Person",
+      source: "website",
+      status: "pending",
+    });
+  }
+  const existingPendingBooking = await Booking.findOne({
+    customerId: user._id,
+    bookingStatus: ROOM_BOOKING_STATUS.PENDING,
+    isDeleted: false,
+
+    checkInDate: { $lt: checkOutDate },
+    checkOutDate: { $gt: checkInDate },
   });
 
-  // ── Create Customer Profile ─────────────────────────────────────────────────
-  profile = await CustomerProfile.create({
-    userId: user._id,
-    name: name.trim(),
-    email: email.toLowerCase().trim(),
-    phone: phone.trim(),
-    roomType: dbRoomType,
-    checkIn: checkInDate,
-    checkOut: checkOutDate,
-    countryCode: countryCode || "+91",
-    country: country || "India",
-    numberOfGuests: String(numberOfGuests) || "1 Person",
-    source: "website",
-    status: "pending",
-  });
-}
+  if (existingPendingBooking) {
+    throw new AppError(
+      "You already have a pending booking request for selected dates.",
+      400
+    );
+  }
+
   // ── Create pending Booking so manager Approval Requests can process it ───
   const pendingBooking = await createPendingBookingForProfile(
     user,
