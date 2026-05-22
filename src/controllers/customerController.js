@@ -358,9 +358,10 @@ exports.submitWebsiteBooking = catchAsync("submitWebsiteBooking", async (req, re
   let profile = await CustomerProfile.findOne({
     userId: user._id,
   });
+ console.log("Existing profile for user:", profile);
   // ── Create Customer Profile ─────────────────────────────────────────────────
   if (!profile) {
-    await CustomerProfile.create({
+    profile =await CustomerProfile.create({
       userId: user._id,
       name: name.trim(),
       email: email.toLowerCase().trim(),
@@ -375,29 +376,23 @@ exports.submitWebsiteBooking = catchAsync("submitWebsiteBooking", async (req, re
       status: "pending",
     });
   }
-  const existingPendingBooking = await Booking.findOne({
-    customerId: user._id,
-    bookingStatus: ROOM_BOOKING_STATUS.PENDING,
-    isDeleted: false,
-
-    checkInDate: { $lt: checkOutDate },
-    checkOutDate: { $gt: checkInDate },
-  });
-
-  if (existingPendingBooking) {
-    throw new AppError(
-      "You already have a pending booking request for selected dates.",
-      400
-    );
-  }
 
   // ── Create pending Booking so manager Approval Requests can process it ───
-  const pendingBooking = await createPendingBookingForProfile(
-    user,
-    profile,
-    customerRole,
-    roomType
-  );
+  // const pendingBooking = await createPendingBookingForProfile(
+  //   user,
+  //   profile,
+  //   customerRole,
+  //   roomType
+  // );
+  const pendingBooking = await createPendingBookingForProfile({
+  user,
+  profile,
+  customerRole,
+  roomType: dbRoomType,
+  checkInDate,
+  checkOutDate,
+  numberOfGuests,
+});
 
   // ── Send branded HTML emails (fire-and-forget) ──────────────────────────────
   const customerData = { name: user.name, email: user.email, phone: user.phone };
