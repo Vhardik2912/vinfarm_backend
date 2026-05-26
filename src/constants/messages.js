@@ -40,12 +40,22 @@ const VALIDATION_MESSAGES = Object.freeze({
   ROLE: {
     NAME_REQUIRED: "Role name is required",
   },
+  SERVICE: {
+    NAME_REQUIRED: "Service name is required",
+  },
   DESIGNATION: {
     NAME_REQUIRED: "Designation name is required",
   },
   PROPERTY: {
     NAME_REQUIRED: "Please add a property name",
     TYPE_REQUIRED: "Please specify a property type",
+  },
+  VEHICLE: {
+    NAME_REQUIRED: "Vehicle name is required",
+    TYPE_REQUIRED: "Vehicle type is required",
+    NUMBER_REQUIRED: "Vehicle number is required",
+    CAPACITY_REQUIRED: "Vehicle capacity is required",
+    PROPERTY_REQUIRED: "Property ID is required",
   },
   BOOKING: {
     CUSTOMER_REQUIRED: "Customer ID is required",

@@ -10,6 +10,14 @@ const {
   createBookingSchema,
   updateBookingSchema,
 } = require("./bookingValidation");
+const {
+  createServiceSchema,
+  updateServiceSchema,
+} = require("./serviceValidation");
+const {
+  createVehicleSchema,
+  updateVehicleSchema,
+} = require("./vehicleValidation");
 
 module.exports = {
   loginSchema,
@@ -24,4 +32,8 @@ module.exports = {
   updateCustomerSchema,
   createBookingSchema,
   updateBookingSchema,
+  createServiceSchema,
+  updateServiceSchema,
+  createVehicleSchema,
+  updateVehicleSchema,
 };

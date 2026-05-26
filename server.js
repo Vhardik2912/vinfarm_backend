@@ -13,6 +13,8 @@ const loginRoutes = require("./src/routes/loginRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const designationRoutes = require("./src/routes/designationRoutes");
 const bookingRoutes = require("./src/routes/bookingRoutes");
+const serviceRoutes = require("./src/routes/serviceRoutes");
+const vehicleRoutes = require("./src/routes/vehicleRoutes");
 
 
 
@@ -46,6 +48,8 @@ app.use("/api/login", loginRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/designation", designationRoutes);
 app.use("/api/booking", bookingRoutes);
+app.use("/api/service", serviceRoutes);
+app.use("/api/vehicle", vehicleRoutes);
 
 
 const errorHandler = require("./src/middleware/errorHandler");
