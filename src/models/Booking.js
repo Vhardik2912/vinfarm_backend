@@ -1,21 +1,126 @@
 const mongoose = require("mongoose");
+const { Schema } = mongoose;
+
 const {
   ROOM_BOOKING_STATUS,
   PAYMENT_STATUS,
   REFUND_STATUS,
 } = require("../constants/booking");
 
-const bookingSchema = new mongoose.Schema(
+/* ─── Accommodation Snapshot ───────────────── */
+const AccommodationSchema = new Schema(
   {
-    // ─── Who booked ─────────────────────────────
+    type: {
+      type: String,
+      enum: ["ROOM", "PROPERTY"],
+      required: true,
+    },
+    refId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+    },
+    name: { type: String, required: true },
+    price: { type: Number, required: true },
+    capacity: { type: Number, required: true },
+  },
+  { _id: false }
+);
+
+/* ─── Guest Info ───────────────────────────── */
+const GuestSchema = new Schema(
+  {
+    adults: { type: Number, required: true },
+    children: { type: Number, default: 0 },
+    totalGuests: { type: Number, required: true },
+  },
+  { _id: false }
+);
+
+/* ─── Date Info ───────────────────────────── */
+const DateSchema = new Schema(
+  {
+    checkInDate: { type: Date, required: true },
+    checkOutDate: { type: Date, required: true },
+    actualCheckIn: { type: Date, default: null },
+    actualCheckOut: { type: Date, default: null },
+  },
+  { _id: false }
+);
+
+/* ─── Services ───────────────────────────── */
+// const ServiceSchema = new Schema(
+//   {
+//     serviceId: { type: Schema.Types.ObjectId, ref: "Service" },
+//     name: String,
+//     price: Number,
+//     quantity: { type: Number, default: 1 },
+//     total: Number,
+//   },
+//   { _id: false }
+// );
+
+/* ─── Pricing ───────────────────────────── */
+const PricingSchema = new Schema(
+  {
+    baseAmount: { type: Number, required: true },
+    serviceAmount: { type: Number, default: 0 },
+    taxAmount: { type: Number, default: 0 },
+    discountAmount: { type: Number, default: 0 },
+    finalAmount: { type: Number, required: true },
+  },
+  { _id: false }
+);
+
+/* ─── Payment ───────────────────────────── */
+const PaymentSchema = new Schema(
+  {
+    status: {
+      type: String,
+      enum: Object.values(PAYMENT_STATUS),
+      default: PAYMENT_STATUS.PENDING,
+    },
+    method: String,
+    transactionId: String,
+    paidAt: Date,
+  },
+  { _id: false }
+);
+
+/* ─── Cancellation ───────────────────────── */
+const CancellationSchema = new Schema(
+  {
+    reason: String,
+    cancelledAt: Date,
+  },
+  { _id: false }
+);
+
+/* ─── Refund ───────────────────────────── */
+const RefundSchema = new Schema(
+  {
+    amount: { type: Number, default: 0 },
+    status: {
+      type: String,
+      enum: Object.values(REFUND_STATUS),
+      default: REFUND_STATUS.NONE,
+    },
+    processedAt: Date,
+  },
+  { _id: false }
+);
+
+/* ─── MAIN BOOKING ───────────────────────── */
+const bookingSchema = new Schema(
+  {
+    // ─── User Info ─────────────────────
     customerId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
 
     createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
@@ -26,107 +131,75 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
 
-    // ─── Room Info ──────────────────────────────
-    roomId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Room",
+    // ─── Accommodation ────────────────
+    accommodation: {
+      type: AccommodationSchema,
       required: true,
     },
 
-    roomSnapshot: {
-      roomName: String,
-      pricePerNight: Number,
-      capacity: Number,
-    },
-
-    // ─── Guests ─────────────────────────────────
+    // ─── Guests ──────────────────────
     guests: {
-      adults: { type: Number, required: true },
-      children: { type: Number, default: 0 },
-    },
-
-    totalGuests: {
-      type: Number,
+      type: GuestSchema,
       required: true,
     },
 
-    // ─── Dates ──────────────────────────────────
-    checkInDate: { type: Date, required: true },
-    checkOutDate: { type: Date, required: true },
+    // ─── Dates ───────────────────────
+    dates: {
+      type: DateSchema,
+      required: true,
+    },
 
-    actualCheckIn: Date,
-    actualCheckOut: Date,
+    // ─── Services ────────────────────
+    // services: {
+    //   type: [ServiceSchema],
+    //   default: [],
+    // },
 
-    // ─── Services (Normalized) ───────────────────
-    services: [
-      {
-        serviceId: { type: mongoose.Schema.Types.ObjectId, ref: "Service" },
-        name: String,
-        price: Number,
-        quantity: { type: Number, default: 1 },
-        total: Number,
-      },
-    ],
-
-    // ─── Pricing Breakdown ──────────────────────
+    // ─── Pricing ─────────────────────
     pricing: {
-      baseAmount: { type: Number, required: true },
-      serviceAmount: { type: Number, default: 0 },
-      taxAmount: { type: Number, default: 0 },
-      discountAmount: { type: Number, default: 0 },
-
-      finalAmount: { type: Number, required: true },
+      type: PricingSchema,
+      required: true,
     },
 
     discountCode: String,
 
-    // ─── Status ─────────────────────────────────
+    // ─── Status ──────────────────────
     bookingStatus: {
       type: String,
       enum: Object.values(ROOM_BOOKING_STATUS),
       default: ROOM_BOOKING_STATUS.PENDING,
     },
 
-    // ─── Payment ────────────────────────────────
+    // ─── Payment ─────────────────────
     payment: {
-      status: {
-        type: String,
-        enum: Object.values(PAYMENT_STATUS),
-        default: PAYMENT_STATUS.PENDING,
-      },
-      method: String,
-      transactionId: String,
-      paidAt: Date,
+      type: PaymentSchema,
+      default: {},
     },
 
-    // ─── Cancellation / Refund ─────────────────
+    // ─── Cancellation / Refund ──────
     cancellation: {
-      reason: String,
-      cancelledAt: Date,
+      type: CancellationSchema,
+      default: {},
     },
 
     refund: {
-      amount: { type: Number, default: 0 },
-      status: {
-        type: String,
-        enum: Object.values(REFUND_STATUS),
-        default: REFUND_STATUS.NONE,
-      },
-      processedAt: Date,
+      type: RefundSchema,
+      default: {},
     },
 
-    // ─── Flags ─────────────────────────────────
+    // ─── Flags ──────────────────────
     isActive: { type: Boolean, default: true },
     isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
-// ─── Virtual ──────────────────────────────────
+/* ─── Virtual ───────────────────────────── */
 bookingSchema.virtual("numberOfNights").get(function () {
-  if (this.checkInDate && this.checkOutDate) {
+  const { checkInDate, checkOutDate } = this.dates || {};
+  if (checkInDate && checkOutDate) {
     return Math.ceil(
-      (this.checkOutDate - this.checkInDate) / (1000 * 60 * 60 * 24)
+      (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)
     );
   }
   return 0;

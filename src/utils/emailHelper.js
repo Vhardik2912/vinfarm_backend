@@ -86,15 +86,15 @@ const getCustomerTemplate = (booking, room, customer) => `<!DOCTYPE html>
                 </tr>
                 <tr>
                   <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#888888;font-weight:600;border-bottom:1px solid #ede9e0;">Check-In</td>
-                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1a1a1a;font-weight:700;border-bottom:1px solid #ede9e0;">${fmtDate(booking.checkInDate)}</td>
+                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1a1a1a;font-weight:700;border-bottom:1px solid #ede9e0;">${fmtDate(booking.dates?.checkInDate || booking.checkInDate)}</td>
                 </tr>
                 <tr>
                   <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#888888;font-weight:600;border-bottom:1px solid #ede9e0;">Check-Out</td>
-                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1a1a1a;font-weight:700;border-bottom:1px solid #ede9e0;">${fmtDate(booking.checkOutDate)}</td>
+                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1a1a1a;font-weight:700;border-bottom:1px solid #ede9e0;">${fmtDate(booking.dates?.checkOutDate || booking.checkOutDate)}</td>
                 </tr>
                 <tr>
                   <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#888888;font-weight:600;border-bottom:1px solid #ede9e0;">Guests</td>
-                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1a1a1a;font-weight:700;border-bottom:1px solid #ede9e0;">${booking.numberOfGuests}</td>
+                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1a1a1a;font-weight:700;border-bottom:1px solid #ede9e0;">${booking.guests?.totalGuests || booking.numberOfGuests}</td>
                 </tr>
                 <tr>
                   <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#888888;font-weight:600;">Contact</td>
@@ -235,15 +235,15 @@ const getAdminTemplate = (booking, room, customer) => `<!DOCTYPE html>
                 </tr>
                 <tr>
                   <td style="padding:13px 18px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#7aab8a;font-weight:600;border-bottom:1px solid #2a4535;">Check-In</td>
-                  <td style="padding:13px 18px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#e8f0eb;font-weight:700;border-bottom:1px solid #2a4535;">${fmtDate(booking.checkInDate)}</td>
+                  <td style="padding:13px 18px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#e8f0eb;font-weight:700;border-bottom:1px solid #2a4535;">${fmtDate(booking.dates?.checkInDate || booking.checkInDate)}</td>
                 </tr>
                 <tr>
                   <td style="padding:13px 18px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#7aab8a;font-weight:600;border-bottom:1px solid #2a4535;">Check-Out</td>
-                  <td style="padding:13px 18px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#e8f0eb;font-weight:700;border-bottom:1px solid #2a4535;">${fmtDate(booking.checkOutDate)}</td>
+                  <td style="padding:13px 18px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#e8f0eb;font-weight:700;border-bottom:1px solid #2a4535;">${fmtDate(booking.dates?.checkOutDate || booking.checkOutDate)}</td>
                 </tr>
                 <tr>
                   <td style="padding:13px 18px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#7aab8a;font-weight:600;">Guests</td>
-                  <td style="padding:13px 18px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#e8f0eb;font-weight:700;">${booking.numberOfGuests}</td>
+                  <td style="padding:13px 18px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#e8f0eb;font-weight:700;">${booking.guests?.totalGuests || booking.numberOfGuests}</td>
                 </tr>
               </table>
 
@@ -345,15 +345,15 @@ const getConfirmationTemplate = (booking, room, customer) => `<!DOCTYPE html>
                 </tr>
                 <tr>
                   <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#888888;font-weight:600;border-bottom:1px solid #ede9e0;">Check-In</td>
-                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1a1a1a;font-weight:700;border-bottom:1px solid #ede9e0;">${fmtDate(booking.checkInDate)}</td>
+                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1a1a1a;font-weight:700;border-bottom:1px solid #ede9e0;">${fmtDate(booking.dates?.checkInDate || booking.checkInDate)}</td>
                 </tr>
                 <tr>
                   <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#888888;font-weight:600;border-bottom:1px solid #ede9e0;">Check-Out</td>
-                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1a1a1a;font-weight:700;border-bottom:1px solid #ede9e0;">${fmtDate(booking.checkOutDate)}</td>
+                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1a1a1a;font-weight:700;border-bottom:1px solid #ede9e0;">${fmtDate(booking.dates?.checkOutDate || booking.checkOutDate)}</td>
                 </tr>
                 <tr>
                   <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#888888;font-weight:600;border-bottom:1px solid #ede9e0;">Guests</td>
-                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1a1a1a;font-weight:700;border-bottom:1px solid #ede9e0;">${booking.numberOfGuests}</td>
+                  <td style="padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1a1a1a;font-weight:700;border-bottom:1px solid #ede9e0;">${booking.guests?.totalGuests || booking.numberOfGuests}</td>
                 </tr>
               </table>
 

@@ -1,6 +1,7 @@
 const Booking = require("../models/Booking");
 const Room = require("../models/Room");
 const User = require("../models/User");
+const Property = require("../models/Property");
 const { catchAsync, successResponse } = require("../utils/responseHelper");
 const AppError = require("../utils/AppError");
 const { ROOM_BOOKING_STATUS, PAYMENT_STATUS, REFUND_STATUS, CUSTOMER_STATUS } = require("../constants/booking");
@@ -11,7 +12,7 @@ const { getPagination } = require("../utils/paginationHelper");
 // ─── Helper: Calculate nights ──────────────────────────────────────────────────
 const calculateNights = (checkIn, checkOut) => {
   const diff = new Date(checkOut) - new Date(checkIn);
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  return Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 };
 
 // @desc    Get all bookings (with filters: status, date range, customer)
@@ -25,17 +26,17 @@ exports.getBookings = catchAsync("getBookings", async (req, res, next) => {
   if (bookingStatus) filter.bookingStatus = bookingStatus;
   if (paymentStatus) filter["payment.status"] = paymentStatus;
   if (customerId) filter.customerId = customerId;
+  
   if (startDate || endDate) {
-    filter.checkInDate = {};
-    if (startDate) filter.checkInDate.$gte = new Date(startDate);
-    if (endDate) filter.checkInDate.$lte = new Date(endDate);
+    filter["dates.checkInDate"] = {};
+    if (startDate) filter["dates.checkInDate"].$gte = new Date(startDate);
+    if (endDate) filter["dates.checkInDate"].$lte = new Date(endDate);
   }
 
   const total = await Booking.countDocuments(filter);
   const bookings = await Booking.find(filter)
     .populate("customerId", "name email phone")
     .populate("createdBy", "name email phone")
-    .populate("roomId", "roomNumber roomType basePrice")
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);
@@ -52,8 +53,7 @@ exports.getBooking = catchAsync("getBooking", async (req, res, next) => {
 
   const booking = await Booking.findOne({ _id: id, isDeleted: false })
     .populate("customerId", "name email phone")
-    .populate("createdBy", "name email phone")
-    .populate("roomId", "roomNumber roomType basePrice");
+    .populate("createdBy", "name email phone");
 
   if (!booking) throw new AppError("Booking not found", 404);
 
@@ -68,21 +68,17 @@ exports.createBooking = catchAsync("createBooking", async (req, res, next) => {
     customerId,
     createdBy,
     bookingSource,
-    roomId,
-    roomSnapshot,
-    guests,
-    totalGuests,
-    checkInDate,
-    checkOutDate,
-    services,
+    accommodation, // { type: "ROOM" | "PROPERTY", refId, name, price, capacity }
+    guests,        // { adults, children, totalGuests }
+    dates,         // { checkInDate, checkOutDate, actualCheckIn, actualCheckOut }
     pricing,
     discountCode,
     payment,
     instantBooking, // if true → confirmed; if false → pending
   } = req.body;
 
-  const checkIn = new Date(checkInDate);
-  const checkOut = new Date(checkOutDate);
+  const checkIn = new Date(dates.checkInDate);
+  const checkOut = new Date(dates.checkOutDate);
   if (checkOut <= checkIn) {
     throw new AppError("Check-out date must be after check-in date", 400);
   }
@@ -91,13 +87,9 @@ exports.createBooking = catchAsync("createBooking", async (req, res, next) => {
   const customer = await User.findById(customerId);
   if (!customer) throw new AppError("Customer not found", 404);
 
-  // Verify room exists and is available
-  const room = await Room.findOne({ _id: roomId, isDeleted: false });
-  if (!room) throw new AppError("Room not found", 404);
-
-  // Check for date conflicts
+  // Check for date conflicts on the specific accommodation
   const conflictingBooking = await Booking.findOne({
-    roomId,
+    "accommodation.refId": accommodation.refId,
     isDeleted: false,
     bookingStatus: {
       $in: [
@@ -107,43 +99,41 @@ exports.createBooking = catchAsync("createBooking", async (req, res, next) => {
       ],
     },
     // Date overlap validation
-    checkInDate: { $lt: checkOut },
-    checkOutDate: { $gt: checkIn },
+    "dates.checkInDate": { $lt: checkOut },
+    "dates.checkOutDate": { $gt: checkIn },
   });
 
   if (conflictingBooking) {
-    throw new AppError("Room is already booked for the selected dates", 400);
+    throw new AppError("Accommodation is already booked for the selected dates", 400);
   }
 
   const status = instantBooking ? ROOM_BOOKING_STATUS.CONFIRMED : ROOM_BOOKING_STATUS.PENDING;
 
-  // Build room snapshot if not provided
-  const finalRoomSnapshot = roomSnapshot || {
-    roomName: room.roomNumber,
-    pricePerNight: room.basePrice,
-    capacity: room.capacity || 2,
-  };
-
   const nights = calculateNights(checkIn, checkOut);
   const finalPricing = pricing || {
-    baseAmount: room.basePrice * nights,
+    baseAmount: accommodation.price * nights,
     serviceAmount: 0,
     taxAmount: 0,
     discountAmount: 0,
-    finalAmount: room.basePrice * nights,
+    finalAmount: accommodation.price * nights,
   };
 
   const booking = await Booking.create({
     customerId,
     createdBy: createdBy || req.user._id,
     bookingSource: bookingSource || "SELF",
-    roomId,
-    roomSnapshot: finalRoomSnapshot,
-    guests: guests || { adults: 1, children: 0 },
-    totalGuests: totalGuests || ((guests?.adults || 1) + (guests?.children || 0)),
-    checkInDate: checkIn,
-    checkOutDate: checkOut,
-    services: services || [],
+    accommodation,
+    guests: {
+      adults: guests.adults,
+      children: guests.children || 0,
+      totalGuests: guests.totalGuests || (guests.adults + (guests.children || 0)),
+    },
+    dates: {
+      checkInDate: checkIn,
+      checkOutDate: checkOut,
+      actualCheckIn: dates.actualCheckIn ? new Date(dates.actualCheckIn) : null,
+      actualCheckOut: dates.actualCheckOut ? new Date(dates.actualCheckOut) : null,
+    },
     pricing: finalPricing,
     discountCode: discountCode || "",
     bookingStatus: status,
@@ -154,17 +144,29 @@ exports.createBooking = catchAsync("createBooking", async (req, res, next) => {
     },
   });
 
+  // Resolve target accommodation details for email sending
+  let accommodationObj = null;
+  if (accommodation.type === "ROOM") {
+    accommodationObj = await Room.findById(accommodation.refId);
+  } else if (accommodation.type === "PROPERTY") {
+    accommodationObj = await Property.findById(accommodation.refId);
+  }
+
+  const emailRoom = {
+    roomType: accommodationObj ? (accommodationObj.roomType || accommodationObj.name) : accommodation.name,
+    roomNumber: accommodationObj ? (accommodationObj.roomNumber || "—") : "—",
+  };
+
   // If instant booking, send confirmation email
   if (instantBooking) {
-    await sendBookingConfirmationEmail(booking, room, customer);
+    await sendBookingConfirmationEmail(booking, emailRoom, customer);
   } else {
-    await sendBookingEmails(booking, room, customer);
+    await sendBookingEmails(booking, emailRoom, customer);
   }
 
   const populatedBooking = await Booking.findById(booking._id)
     .populate("customerId", "name email phone")
-    .populate("createdBy", "name email phone")
-    .populate("roomId", "roomNumber roomType basePrice");
+    .populate("createdBy", "name email phone");
 
   successResponse({
     res,
@@ -192,9 +194,20 @@ exports.confirmBooking = catchAsync("confirmBooking", async (req, res, next) => 
 
   // Send confirmation email
   const customer = await User.findById(booking.customerId);
-  const room = await Room.findById(booking.roomId);
-  if (customer && customer.email && room) {
-    await sendBookingConfirmationEmail(booking, room, customer);
+  let accommodationObj = null;
+  if (booking.accommodation?.type === "ROOM") {
+    accommodationObj = await Room.findById(booking.accommodation.refId);
+  } else if (booking.accommodation?.type === "PROPERTY") {
+    accommodationObj = await Property.findById(booking.accommodation.refId);
+  }
+
+  const emailRoom = {
+    roomType: accommodationObj ? (accommodationObj.roomType || accommodationObj.name) : (booking.accommodation?.name || "—"),
+    roomNumber: accommodationObj ? (accommodationObj.roomNumber || "—") : "—",
+  };
+
+  if (customer && customer.email) {
+    await sendBookingConfirmationEmail(booking, emailRoom, customer);
   }
 
   successResponse({ res, message: "Booking confirmed successfully", data: booking });
@@ -212,7 +225,10 @@ exports.checkIn = catchAsync("checkIn", async (req, res, next) => {
   }
 
   booking.bookingStatus = ROOM_BOOKING_STATUS.CHECKED_IN;
-  booking.actualCheckIn = new Date();
+  booking.dates = {
+    ...booking.dates.toObject(),
+    actualCheckIn: new Date(),
+  };
   await booking.save();
 
   successResponse({ res, message: "Guest checked in successfully", data: booking });
@@ -230,7 +246,10 @@ exports.checkOut = catchAsync("checkOut", async (req, res, next) => {
   }
 
   booking.bookingStatus = ROOM_BOOKING_STATUS.CHECKED_OUT;
-  booking.actualCheckOut = new Date();
+  booking.dates = {
+    ...booking.dates.toObject(),
+    actualCheckOut: new Date(),
+  };
   await booking.save();
 
   successResponse({ res, message: "Guest checked out successfully", data: booking });
@@ -242,13 +261,9 @@ exports.checkOut = catchAsync("checkOut", async (req, res, next) => {
 exports.updateBooking = catchAsync("updateBooking", async (req, res, next) => {
   const id = req.params.id;
   const {
+    accommodation,
     guests,
-    totalGuests,
-    checkInDate,
-    checkOutDate,
-    actualCheckIn,
-    actualCheckOut,
-    services,
+    dates,
     pricing,
     discountCode,
     bookingStatus,
@@ -264,44 +279,49 @@ exports.updateBooking = catchAsync("updateBooking", async (req, res, next) => {
     throw new AppError("Cannot modify a cancelled or checked-out booking", 400);
   }
 
-  if (guests) {
-    booking.guests = { ...booking.guests, ...guests };
-    if (totalGuests === undefined) {
-      booking.totalGuests = (booking.guests.adults || 1) + (booking.guests.children || 0);
-    }
+  if (accommodation) {
+    booking.accommodation = { ...booking.accommodation.toObject(), ...accommodation };
   }
-  if (totalGuests !== undefined) booking.totalGuests = totalGuests;
 
-  if (checkInDate) booking.checkInDate = new Date(checkInDate);
-  if (checkOutDate) booking.checkOutDate = new Date(checkOutDate);
-  if (actualCheckIn) booking.actualCheckIn = new Date(actualCheckIn);
-  if (actualCheckOut) booking.actualCheckOut = new Date(actualCheckOut);
-  if (services) booking.services = services;
+  if (guests) {
+    const adults = guests.adults !== undefined ? guests.adults : booking.guests.adults;
+    const children = guests.children !== undefined ? guests.children : booking.guests.children;
+    const totalGuests = guests.totalGuests !== undefined ? guests.totalGuests : (adults + children);
+    booking.guests = {
+      adults,
+      children,
+      totalGuests,
+    };
+  }
+
+  if (dates) {
+    booking.dates = { ...booking.dates.toObject(), ...dates };
+  }
 
   if (pricing) {
-    booking.pricing = { ...booking.pricing, ...pricing };
+    booking.pricing = { ...booking.pricing.toObject(), ...pricing };
   }
   if (discountCode !== undefined) booking.discountCode = discountCode;
   if (bookingStatus) booking.bookingStatus = bookingStatus;
 
   if (payment) {
-    booking.payment = { ...booking.payment, ...payment };
+    booking.payment = { ...booking.payment.toObject(), ...payment };
   }
   if (cancellation) {
-    booking.cancellation = { ...booking.cancellation, ...cancellation };
+    booking.cancellation = { ...booking.cancellation.toObject(), ...cancellation };
   }
   if (refund) {
-    booking.refund = { ...booking.refund, ...refund };
+    booking.refund = { ...booking.refund.toObject(), ...refund };
   }
 
   // Recalculate base/final pricing if dates or snapshot prices changed
-  if (checkInDate || checkOutDate) {
-    const pricePerNight = booking.roomSnapshot?.pricePerNight || 0;
-    const nights = calculateNights(booking.checkInDate, booking.checkOutDate);
+  if (dates?.checkInDate || dates?.checkOutDate || accommodation?.price) {
+    const pricePerNight = booking.accommodation?.price || 0;
+    const nights = calculateNights(booking.dates.checkInDate, booking.dates.checkOutDate);
     const baseAmt = pricePerNight * nights;
     
     booking.pricing = {
-      ...booking.pricing,
+      ...booking.pricing.toObject(),
       baseAmount: baseAmt,
       finalAmount: Math.max(0, baseAmt + (booking.pricing?.serviceAmount || 0) + (booking.pricing?.taxAmount || 0) - (booking.pricing?.discountAmount || 0)),
     };
@@ -333,7 +353,7 @@ exports.recordPayment = catchAsync("recordPayment", async (req, res, next) => {
 
   if (paymentAmount) {
     booking.pricing = {
-      ...booking.pricing,
+      ...booking.pricing.toObject(),
       finalAmount: paymentAmount,
     };
   }
@@ -404,7 +424,7 @@ exports.processRefund = catchAsync("processRefund", async (req, res, next) => {
   };
 
   booking.payment = {
-    ...booking.payment,
+    ...booking.payment.toObject(),
     status: finalRefundAmount >= finalAmount
       ? PAYMENT_STATUS.REFUNDED
       : PAYMENT_STATUS.PARTIALLY_REFUNDED,
@@ -429,11 +449,12 @@ exports.getRoomAvailability = catchAsync("getRoomAvailability", async (req, res,
   const checkOut = new Date(checkOutDate);
 
   // Find all rooms booked during this period
-  const bookedRoomIds = await Booking.distinct("roomId", {
+  const bookedRoomIds = await Booking.distinct("accommodation.refId", {
     isDeleted: false,
+    "accommodation.type": "ROOM",
     bookingStatus: { $in: [ROOM_BOOKING_STATUS.CONFIRMED, ROOM_BOOKING_STATUS.CHECKED_IN, ROOM_BOOKING_STATUS.PENDING] },
-    checkInDate: { $lt: checkOut },
-    checkOutDate: { $gt: checkIn },
+    "dates.checkInDate": { $lt: checkOut },
+    "dates.checkOutDate": { $gt: checkIn },
   });
 
   const roomFilter = { isDeleted: false, _id: { $nin: bookedRoomIds } };

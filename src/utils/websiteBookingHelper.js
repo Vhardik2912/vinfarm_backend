@@ -42,18 +42,19 @@ async function findAvailableRoomForStay(roomType, checkInDate, checkOutDate) {
     console.log("Checking Room:", room.roomNumber);
     console.log("Room Type:", room.roomType);
 
-    const allBookings = await Booking.find({ roomId: room._id, isDeleted: false });
+    const allBookings = await Booking.find({ "accommodation.refId": room._id, isDeleted: false });
     console.log(
       "Room Bookings:",
       allBookings.map((b) => ({
         status: b.bookingStatus,
-        checkIn: b.checkInDate,
-        checkOut: b.checkOutDate,
+        checkIn: b.dates?.checkInDate,
+        checkOut: b.dates?.checkOutDate,
       }))
     );
 
     const conflict = await Booking.findOne({
-      roomId: room._id,
+      "accommodation.refId": room._id,
+      "accommodation.type": "ROOM",
       isDeleted: false,
       bookingStatus: {
         $in: [
@@ -62,8 +63,8 @@ async function findAvailableRoomForStay(roomType, checkInDate, checkOutDate) {
           ROOM_BOOKING_STATUS.CHECKED_IN,
         ],
       },
-      checkInDate: { $lt: checkOutDate },
-      checkOutDate: { $gt: checkInDate },
+      "dates.checkInDate": { $lt: checkOutDate },
+      "dates.checkOutDate": { $gt: checkInDate },
     });
 
     console.log("Conflict Found:", !!conflict);
@@ -101,8 +102,8 @@ async function createPendingBookingForProfile({
     customerId: user._id,
     isDeleted: false,
     bookingStatus: ROOM_BOOKING_STATUS.PENDING,
-    checkInDate: { $lt: checkOutDate },
-    checkOutDate: { $gt: checkInDate },
+    "dates.checkInDate": { $lt: checkOutDate },
+    "dates.checkOutDate": { $gt: checkInDate },
   });
 
   if (existingPending) {
@@ -128,19 +129,22 @@ async function createPendingBookingForProfile({
     customerId: user._id,
     createdBy: user._id, // self-booking from website
     bookingSource: "SELF",
-    roomId: room._id,
-    roomSnapshot: {
-      roomName: room.roomNumber,
-      pricePerNight: room.basePrice,
+    accommodation: {
+      type: "ROOM",
+      refId: room._id,
+      name: room.roomNumber,
+      price: room.basePrice,
       capacity: room.capacity || 2,
     },
     guests: {
       adults: guestsNum,
       children: 0,
+      totalGuests: guestsNum,
     },
-    totalGuests: guestsNum,
-    checkInDate,
-    checkOutDate,
+    dates: {
+      checkInDate,
+      checkOutDate,
+    },
     services: [],
     pricing: {
       baseAmount,

@@ -2,6 +2,7 @@ const Booking = require("../models/Booking");
 const User = require("../models/User");
 const Room = require("../models/Room");
 const Role = require("../models/Role");
+const { ROOM_BOOKING_STATUS, PAYMENT_STATUS } = require("../constants/booking");
 
 const seedBookings = async () => {
   try {
@@ -49,8 +50,8 @@ const seedBookings = async () => {
 
       const duplicate = await Booking.findOne({
         customerId: customer._id,
-        roomId: room._id,
-        bookingStatus: "pending",
+        "accommodation.refId": room._id,
+        bookingStatus: ROOM_BOOKING_STATUS.PENDING,
         isDeleted: false,
       });
       if (duplicate) continue;
@@ -65,17 +66,37 @@ const seedBookings = async () => {
 
       await Booking.create({
         customerId: customer._id,
-        roleId: customer.roleId,
-        roomId: room._id,
-        checkInDate: checkIn,
-        checkOutDate: checkOut,
-        numberOfGuests: t.guests,
-        baseAmount,
-        totalAmount: baseAmount,
-        bookingStatus: "pending",
-        paymentStatus: "pending",
-        paymentMethod: "UPI",
-        specialRequests: t.note,
+        createdBy: customer._id,
+        bookingSource: "SELF",
+        accommodation: {
+          type: "ROOM",
+          refId: room._id,
+          name: room.roomNumber,
+          price: room.basePrice,
+          capacity: room.capacity || 2,
+        },
+        guests: {
+          adults: t.guests,
+          children: 0,
+          totalGuests: t.guests,
+        },
+        dates: {
+          checkInDate: checkIn,
+          checkOutDate: checkOut,
+        },
+        pricing: {
+          baseAmount,
+          serviceAmount: 0,
+          taxAmount: 0,
+          discountAmount: 0,
+          finalAmount: baseAmount,
+        },
+        bookingStatus: ROOM_BOOKING_STATUS.PENDING,
+        payment: {
+          status: PAYMENT_STATUS.PENDING,
+          method: "UPI",
+          transactionId: "",
+        },
       });
       created += 1;
       console.log(`✅ Pending booking seeded: ${customer.name} → Room ${room.roomNumber}`);
