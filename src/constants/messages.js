@@ -22,8 +22,6 @@ const VALIDATION_MESSAGES = Object.freeze({
     NUMBER_REQUIRED: "Please add a room number or ID",
     TYPE_REQUIRED: "Please specify a room type",
     PRICE_REQUIRED: "Please add a base price",
-    BOOKING_STATUS_REQUIRED: "Please add booking status",
-    CLEANING_STATUS_REQUIRED: "Please add cleaning status",
     PROPERTY_REQUIRED: "Please specify a property for this room",
   },
   USER: {
@@ -35,8 +33,6 @@ const VALIDATION_MESSAGES = Object.freeze({
     COUNTRY_CODE_REQUIRED: "Please specify country code",
   },
   STAFF: {
-    EMAIL_REQUIRED: "Please add an email for Staff profile",
-    EMAIL_VALID: "Please add a valid email",
     JOIN_DATE_REQUIRED: "Please add a join date",
     SALARY_REQUIRED: "Please add salary information",
     ID_PROOF_REQUIRED: "Please upload an ID proof document",
@@ -51,29 +47,6 @@ const VALIDATION_MESSAGES = Object.freeze({
     NAME_REQUIRED: "Please add a property name",
     TYPE_REQUIRED: "Please specify a property type",
   },
-  VEHICLE: {
-    MAKE_REQUIRED: "Please specify vehicle make/brand",
-    MODEL_REQUIRED: "Please specify vehicle model",
-    PLATE_REQUIRED: "Please add vehicle license plate number",
-    TYPE_REQUIRED: "Please specify a valid vehicle type",
-  },
-  DRIVER: {
-    NAME_REQUIRED: "Please specify driver name",
-    PHONE_REQUIRED: "Please specify driver phone number",
-    LICENSE_REQUIRED: "Please specify driver license number",
-    COUNTRY_REQUIRED: "Please specify driver country name",
-  },
-  TRANSPORT_BOOKING: {
-    CUSTOMER_REQUIRED: "Please specify a customer ID",
-    VEHICLE_REQUIRED: "Please specify a vehicle ID",
-    TYPE_REQUIRED: "Please specify booking type",
-    PICKUP_TIME_REQUIRED: "Please specify pickup date and time",
-  },
-  MAINTENANCE: {
-    ISSUE_TYPE_REQUIRED: "Please specify issue type",
-    DESCRIPTION_REQUIRED: "Please provide a description of the issue",
-    REPORTER_REQUIRED: "Please specify the user reporting the issue",
-  },
   BOOKING: {
     CUSTOMER_REQUIRED: "Customer ID is required",
     ROOM_REQUIRED: "Room ID is required",
@@ -83,18 +56,8 @@ const VALIDATION_MESSAGES = Object.freeze({
     BASE_AMOUNT_REQUIRED: "Base amount is required",
     TOTAL_AMOUNT_REQUIRED: "Total amount is required",
   },
-  FARM_BOOKING: {
-    CUSTOMER_REQUIRED: "Customer ID is required",
-    START_DATE_REQUIRED: "Start date and time is required",
-    END_DATE_REQUIRED: "End date and time is required",
-    GUESTS_REQUIRED: "Number of guests is required",
-  },
   CUSTOMER: {
-    ROOM_TYPE_REQUIRED: "Room type is required",
-    CHECKIN_REQUIRED: "Check-in date and time is required",
-    CHECKOUT_REQUIRED: "Check-out date and time is required",
     DOCUMENT_REQUIRED: "Document (ID proof) upload is required",
-    PRICE_REQUIRED: "Price is required",
     STATUS_REQUIRED: "Status is required",
   }
 });

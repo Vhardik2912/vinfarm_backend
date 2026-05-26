@@ -24,7 +24,7 @@ const defaultCustomers = [
     address: "9 Green Valley Lane, Bangalore",
     loyaltyPoints: 200,
   }
- 
+
 ];
 
 const seedCustomer = async () => {
@@ -51,7 +51,6 @@ const seedCustomer = async () => {
           phone: customer.phone,
           password: "123456", // default password
           roleId: customerRole._id,
-          status: "active",
         });
 
         console.log(`✅ User created: ${customer.name}`);
@@ -67,14 +66,7 @@ const seedCustomer = async () => {
           userId: customerUser._id,
           address: customer.address,
           loyaltyPoints: customer.loyaltyPoints,
-          roomType: "Family",
-          checkIn: new Date(),
-          checkOut: new Date(
-            Date.now() + 2 * 24 * 60 * 60 * 1000
-          ), // 2 days later
           document: "/uploads/mock-document.pdf",
-          price: 5000,
-          status: "pending",
         });
 
         console.log(

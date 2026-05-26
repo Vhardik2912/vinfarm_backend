@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const { VALIDATION_MESSAGES, PATTERNS } = require("../constants/constants");
+const { validatePhoneMongoose } = require("../validations/validationHelper");
 
 const userSchema = new mongoose.Schema(
   {
@@ -21,30 +22,25 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
       required: [true, VALIDATION_MESSAGES.USER.PHONE_REQUIRED],
-      match: [
-        PATTERNS.PHONE,
-        "Please provide a valid phone number with optional country code",
-      ],
+      validate: {
+        validator: validatePhoneMongoose,
+      },
     },
     countryCode: {
       type: String,
       required: [true, VALIDATION_MESSAGES.USER.COUNTRY_CODE_REQUIRED],
       trim: true,
-      default: "Africa",
+      default: "+91",
     },
     password: {
       type: String,
       minlength: 6,
-      select: false, // Hidden by default when querying users
+      select: false,
     },
     roleId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Role",
       required: [true, VALIDATION_MESSAGES.USER.ROLE_REQUIRED],
-    },
-    status: {
-      type: Boolean,
-      default: true,
     },
     isActive: {
       type: Boolean,
@@ -56,7 +52,7 @@ const userSchema = new mongoose.Schema(
     },
     refreshToken: {
       type: String,
-      select: false, // Don't return this in normal queries
+      select: false,
     },
   },
   {

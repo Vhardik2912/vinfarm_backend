@@ -1,5 +1,6 @@
 const Joi = require("joi");
-const { VALIDATION_MESSAGES, PATTERNS } = require("../constants/constants");
+const { VALIDATION_MESSAGES } = require("../constants/constants");
+const { validatePhoneJoi } = require("./validationHelper");
 
 const createStaffSchema = Joi.object({
   name: Joi.string()
@@ -15,10 +16,9 @@ const createStaffSchema = Joi.object({
       "any.required": VALIDATION_MESSAGES.USER.EMAIL_REQUIRED,
     }),
   phone: Joi.string()
-    .pattern(PATTERNS.PHONE)
+    .custom(validatePhoneJoi)
     .required()
     .messages({
-      "string.pattern.base": "Phone number must be a valid format with optional country code",
       "any.required": VALIDATION_MESSAGES.USER.PHONE_REQUIRED,
     }),
   countryCode: Joi.string().optional().default("India"),
@@ -33,6 +33,7 @@ const createStaffSchema = Joi.object({
     "any.required": VALIDATION_MESSAGES.STAFF.SALARY_REQUIRED,
   }),
   isActive: Joi.boolean().optional(),
+  isDeleted: Joi.boolean().optional(),
 });
 
 const updateStaffSchema = Joi.object({
@@ -40,17 +41,15 @@ const updateStaffSchema = Joi.object({
   name: Joi.string().optional(),
   email: Joi.string().email().optional(),
   phone: Joi.string()
-    .pattern(PATTERNS.PHONE)
-    .optional()
-    .messages({
-      "string.pattern.base": "Phone number must be a valid format with optional country code",
-    }),
+    .custom(validatePhoneJoi)
+    .optional(),
   countryCode: Joi.string().optional(),
   designationId: Joi.string().optional(),
   password: Joi.string().min(6).optional(),
   joinDate: Joi.date().optional(),
   salary: Joi.number().optional(),
   isActive: Joi.boolean().optional(),
+  isDeleted: Joi.boolean().optional(),
 });
 
 module.exports = {

@@ -1,5 +1,7 @@
 const express = require("express");
 const { protect } = require("../middleware/authMiddleware");
+const validate = require("../middleware/validate");
+const { createBookingSchema, updateBookingSchema } = require("../validations/bookingValidation");
 const {
   getBookings,
   getBooking,
@@ -22,8 +24,8 @@ router.use(protect);
 // ─── 5 Standard CRUD Routes ───────────────────────────────────────────────────
 router.get("/get", getBookings);
 router.get("/getid/:id", getBooking);
-router.post("/post", createBooking);
-router.put("/put/:id", updateBooking);
+router.post("/post", validate(createBookingSchema), createBooking);
+router.put("/put/:id", validate(updateBookingSchema), updateBooking);
 router.delete("/delete/:id", cancelBooking);
 
 // ─── Special Booking Actions ──────────────────────────────────────────────────

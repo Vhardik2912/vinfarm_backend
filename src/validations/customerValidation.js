@@ -1,5 +1,6 @@
 const Joi = require("joi");
-const { ROOM_TYPES, VALIDATION_MESSAGES, PATTERNS, CUSTOMER_STATUS } = require("../constants/constants");
+const { VALIDATION_MESSAGES } = require("../constants/constants");
+const { validatePhoneJoi } = require("./validationHelper");
 
 const createCustomerSchema = Joi.object({
   name: Joi.string()
@@ -15,44 +16,15 @@ const createCustomerSchema = Joi.object({
       "any.required": VALIDATION_MESSAGES.USER.EMAIL_REQUIRED,
     }),
   phone: Joi.string()
-    .pattern(PATTERNS.PHONE)
+    .custom(validatePhoneJoi)
     .required()
     .messages({
-      "string.pattern.base": "Phone number must be a valid format with optional country code",
       "any.required": VALIDATION_MESSAGES.USER.PHONE_REQUIRED,
     }),
   address: Joi.string().optional().allow(""),
-  roomType: Joi.string()
-    .valid(...ROOM_TYPES)
-    .required()
-    .messages({
-      "any.required": VALIDATION_MESSAGES.CUSTOMER.ROOM_TYPE_REQUIRED,
-      "any.only": `Room type must be one of: ${ROOM_TYPES.join(", ")}`,
-    }),
-  checkIn: Joi.date()
-    .required()
-    .messages({
-      "any.required": VALIDATION_MESSAGES.CUSTOMER.CHECKIN_REQUIRED,
-    }),
-  checkOut: Joi.date()
-    .required()
-    .messages({
-      "any.required": VALIDATION_MESSAGES.CUSTOMER.CHECKOUT_REQUIRED,
-    }),
-  price: Joi.number()
-    .positive()
-    .required()
-    .messages({
-      "any.required": VALIDATION_MESSAGES.CUSTOMER.PRICE_REQUIRED,
-      "number.base": "Price must be a number",
-      "number.positive": "Price must be a positive number",
-    }),
-  status: Joi.string()
-    .valid(...Object.values(CUSTOMER_STATUS))
-    .optional()
-    .messages({
-      "any.only": `Status must be one of: ${Object.values(CUSTOMER_STATUS).join(", ")}`,
-    }),
+  isActive: Joi.boolean().optional(),
+  isDeleted: Joi.boolean().optional(),
+  // status removed from CustomerProfile schema
 });
 
 const updateCustomerSchema = Joi.object({
@@ -60,22 +32,13 @@ const updateCustomerSchema = Joi.object({
   name: Joi.string().optional(),
   email: Joi.string().email().optional(),
   phone: Joi.string()
-    .pattern(PATTERNS.PHONE)
-    .optional()
-    .messages({
-      "string.pattern.base": "Phone number must be a valid format with optional country code",
-    }),
+    .custom(validatePhoneJoi)
+    .optional(),
   address: Joi.string().optional().allow(""),
   loyaltyPoints: Joi.number().optional(),
-  roomType: Joi.string()
-    .valid(...ROOM_TYPES)
-    .optional(),
-  checkIn: Joi.date().optional(),
-  checkOut: Joi.date().optional(),
-  price: Joi.number().positive().optional(),
-  status: Joi.string()
-    .valid(...Object.values(CUSTOMER_STATUS))
-    .optional(),
+  isActive: Joi.boolean().optional(),
+  isDeleted: Joi.boolean().optional(),
+  // status removed from CustomerProfile schema
 });
 
 module.exports = {

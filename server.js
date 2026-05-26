@@ -11,12 +11,8 @@ const customerRoutes = require("./src/routes/customerRoutes");
 const roomRoutes = require("./src/routes/roomRoutes");
 const loginRoutes = require("./src/routes/loginRoutes");
 const userRoutes = require("./src/routes/userRoutes");
-const vehicleRoutes = require("./src/routes/vehicleRoutes");
-const transportBookingRoutes = require("./src/routes/transportBookingRoutes");
-const maintenanceRoutes = require("./src/routes/maintenanceRoutes");
 const designationRoutes = require("./src/routes/designationRoutes");
 const bookingRoutes = require("./src/routes/bookingRoutes");
-const farmBookingRoutes = require("./src/routes/farmBookingRoutes");
 
 
 
@@ -48,12 +44,8 @@ app.use("/api/customer", customerRoutes);
 app.use("/api/room", roomRoutes);
 app.use("/api/login", loginRoutes);
 app.use("/api/user", userRoutes);
-app.use("/api/vehicle", vehicleRoutes);
-app.use("/api/transport-booking", transportBookingRoutes);
-app.use("/api/maintenance", maintenanceRoutes);
 app.use("/api/designation", designationRoutes);
 app.use("/api/booking", bookingRoutes);
-app.use("/api/farm-booking", farmBookingRoutes);
 
 
 const errorHandler = require("./src/middleware/errorHandler");

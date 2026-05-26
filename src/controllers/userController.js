@@ -21,7 +21,7 @@ const safeDeleteFile = (filePath) => {
 // @route   GET /api/v1/users/get
 // @access  Public
 exports.getUsers = catchAsync("getUsers", async (req, res, next) => {
-  const users = await User.find({ isDeleted: false }).populate("roleId", "name status");
+  const users = await User.find({ isDeleted: false }).populate("roleId", "name");
   const populatedUsers = [];
 
   for (let user of users) {
@@ -32,8 +32,10 @@ exports.getUsers = catchAsync("getUsers", async (req, res, next) => {
       profile = await StaffProfile.findOne({ userId: user._id }).populate("designationId", "name status");
     }
 
+    const userObj = user.toObject();
+    if (Object.prototype.hasOwnProperty.call(userObj, "status")) delete userObj.status;
     populatedUsers.push({
-      ...user.toObject(),
+      ...userObj,
       profile: profile || null,
     });
   }
@@ -53,7 +55,7 @@ exports.getUser = catchAsync("getUser", async (req, res, next) => {
     throw new AppError("Please provide a user ID", 400);
   }
 
-  const user = await User.findOne({ _id: id, isDeleted: false }).populate("roleId", "name status");
+  const user = await User.findOne({ _id: id, isDeleted: false }).populate("roleId", "name");
   if (!user) {
     throw new AppError("User not found", 404);
   }
@@ -68,7 +70,11 @@ exports.getUser = catchAsync("getUser", async (req, res, next) => {
   successResponse({
     res,
     data: {
-      ...user.toObject(),
+      ...(() => {
+        const o = user.toObject();
+        if (Object.prototype.hasOwnProperty.call(o, "status")) delete o.status;
+        return o;
+      })(),
       profile: profile || null,
     },
   });
@@ -155,7 +161,11 @@ exports.createUser = catchAsync("createUser", async (req, res, next) => {
       res,
       statusCode: 201,
       data: {
-        ...user.toObject(),
+        ...(() => {
+          const o = user.toObject();
+          if (Object.prototype.hasOwnProperty.call(o, "status")) delete o.status;
+          return o;
+        })(),
         profile,
       },
     });
@@ -263,12 +273,16 @@ exports.updateUser = catchAsync("updateUser", async (req, res, next) => {
       profile = await StaffProfile.findById(staffProfile._id).populate("designationId", "name status");
     }
 
-    const populatedUser = await User.findById(user._id).populate("roleId", "name status");
+    const populatedUser = await User.findById(user._id).populate("roleId", "name");
 
     successResponse({
       res,
       data: {
-        ...populatedUser.toObject(),
+        ...(() => {
+          const o = populatedUser.toObject();
+          if (Object.prototype.hasOwnProperty.call(o, "status")) delete o.status;
+          return o;
+        })(),
         profile,
       },
     });

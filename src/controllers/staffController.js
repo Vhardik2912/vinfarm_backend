@@ -4,6 +4,7 @@ const StaffProfile = require("../models/StaffProfile");
 const Designation = require("../models/Designation");
 const { catchAsync, successResponse } = require("../utils/responseHelper");
 const AppError = require("../utils/AppError");
+const { getPagination } = require("../utils/paginationHelper");
 const fs = require("fs");
 const path = require("path");
 
@@ -29,7 +30,7 @@ const formatStaff = (profile) => {
     name: user?.name || "",
     email: user?.email || "",
     phone: user?.phone || "",
-    isActive: user?.isActive ?? true,
+    isActive: obj.isActive ?? true,
     createdAt: user?.createdAt,
     updatedAt: user?.updatedAt,
     profile: {
@@ -39,6 +40,8 @@ const formatStaff = (profile) => {
       endDate: obj.endDate,
       salary: obj.salary,
       idProof: obj.idProof,
+      isActive: obj.isActive ?? true,
+      isDeleted: obj.isDeleted ?? false,
       createdAt: obj.createdAt,
       updatedAt: obj.updatedAt
     }
@@ -46,21 +49,32 @@ const formatStaff = (profile) => {
 };
 
 // @desc    Get all staff (with User and Role populated)
-// @route   GET /api/v1/staff/get
+// @route   GET /api/v1/staff/get?page=1&limit=10
 // @access  Public
 exports.getStaffs = catchAsync("getStaffs", async (req, res, next) => {
-  const staffProfiles = await StaffProfile.find().populate({
-    path: "userId",
-    match: { isDeleted: false }
-  }).populate("designationId", "name status");
+  const { skip, limit, buildMeta } = getPagination(req.query);
+
+  const filter = { isDeleted: false };
+  const total = await StaffProfile.countDocuments(filter);
+
+  const staffProfiles = await StaffProfile.find(filter)
+    .populate({
+      path: "userId",
+      match: { isDeleted: false }
+    })
+    .populate("designationId", "name status")
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
 
   const formattedStaffs = staffProfiles
-    .filter(p => p.userId !== null) // Filter out any orphaned or deleted profiles
+    .filter(p => p.userId !== null)
     .map(formatStaff);
 
   successResponse({
     res,
     data: formattedStaffs,
+    other: buildMeta(total),
   });
 });
 
@@ -74,7 +88,8 @@ exports.getStaff = catchAsync("getStaff", async (req, res, next) => {
   }
 
   const staffProfile = await StaffProfile.findOne({
-    $or: [{ _id: id }, { userId: id }]
+    $or: [{ _id: id }, { userId: id }],
+    isDeleted: false
   }).populate({
     path: "userId",
     match: { isDeleted: false }
@@ -134,6 +149,8 @@ exports.createStaff = catchAsync("createStaff", async (req, res, next) => {
       throw new AppError("Selected designation not found", 404);
     }
 
+    const activeStatus = isActive !== undefined ? isActive : true;
+
     // Create Core User account
     const user = await User.create({
       name,
@@ -141,7 +158,7 @@ exports.createStaff = catchAsync("createStaff", async (req, res, next) => {
       phone,
       password,
       roleId: staffRole._id,
-      isActive: isActive !== undefined ? isActive : true,
+      isActive: activeStatus,
     });
 
     // Create Staff Profile
@@ -152,6 +169,8 @@ exports.createStaff = catchAsync("createStaff", async (req, res, next) => {
       endDate: endDate || null,
       salary,
       idProof: `/uploads/${req.file.filename}`,
+      isActive: activeStatus,
+      isDeleted: false,
     });
 
     // Populate designation for response
@@ -180,6 +199,7 @@ exports.updateStaff = catchAsync("updateStaff", async (req, res, next) => {
       email,
       phone,
       isActive,
+      isDeleted,
       designationId,
       password,
       joinDate,
@@ -193,7 +213,8 @@ exports.updateStaff = catchAsync("updateStaff", async (req, res, next) => {
 
     // Find staff profile first
     let staffProfile = await StaffProfile.findOne({
-      $or: [{ _id: id }, { userId: id }]
+      $or: [{ _id: id }, { userId: id }],
+      isDeleted: false
     });
 
     if (!staffProfile) {
@@ -206,10 +227,13 @@ exports.updateStaff = catchAsync("updateStaff", async (req, res, next) => {
       throw new AppError("Associated staff user account not found", 404);
     }
 
+    const activeStatus = isActive !== undefined ? isActive : user.isActive;
+
     user.name = name || user.name;
     user.email = email || user.email;
     user.phone = phone || user.phone;
-    user.isActive = isActive !== undefined ? isActive : user.isActive;
+    user.isActive = activeStatus;
+    if (isDeleted !== undefined) user.isDeleted = isDeleted;
     if (password) user.password = password;
     await user.save();
 
@@ -218,6 +242,8 @@ exports.updateStaff = catchAsync("updateStaff", async (req, res, next) => {
     if (joinDate) staffProfile.joinDate = joinDate;
     if (endDate !== undefined) staffProfile.endDate = endDate === "" ? null : endDate;
     if (salary) staffProfile.salary = salary;
+    staffProfile.isActive = activeStatus;
+    if (isDeleted !== undefined) staffProfile.isDeleted = isDeleted;
 
     // Handle new ID Proof file upload
     if (req.file) {
@@ -252,7 +278,8 @@ exports.deleteStaff = catchAsync("deleteStaff", async (req, res, next) => {
   }
 
   const staffProfile = await StaffProfile.findOne({
-    $or: [{ _id: id }, { userId: id }]
+    $or: [{ _id: id }, { userId: id }],
+    isDeleted: false
   });
 
   if (!staffProfile) {
@@ -264,10 +291,14 @@ exports.deleteStaff = catchAsync("deleteStaff", async (req, res, next) => {
     throw new AppError("Associated staff user account not found", 404);
   }
 
-  // Soft delete associated user
+  // Soft delete associated user and staff profile
   user.isDeleted = true;
   user.isActive = false;
   await user.save();
+
+  staffProfile.isDeleted = true;
+  staffProfile.isActive = false;
+  await staffProfile.save();
 
   successResponse({
     res,

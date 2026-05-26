@@ -11,7 +11,7 @@ const AppError = require("../utils/AppError");
 const formatUserResponse = (user, profile) => {
   const userObj = user.toObject ? user.toObject() : user;
   if (userObj.password) delete userObj.password;
-  
+
   let profileObj = profile && profile.toObject ? profile.toObject() : profile;
   if (profileObj && profileObj.password) delete profileObj.password;
 
@@ -40,7 +40,7 @@ exports.registerCustomer = catchAsync("registerCustomer", async (req, res, next)
   // Find the default "customer" role
   let customerRole = await Role.findOne({ name: "customer" });
   if (!customerRole) {
-    customerRole = await Role.create({ name: "customer", status: true });
+    customerRole = await Role.create({ name: "customer", isActive: true });
   }
 
   // 1. Create core User
@@ -50,13 +50,14 @@ exports.registerCustomer = catchAsync("registerCustomer", async (req, res, next)
     phone,
     countryCode,
     roleId: customerRole._id,
-    status: true,
   });
 
   // 2. Create Customer Profile
   const profile = await CustomerProfile.create({
     userId: user._id,
     address: address || "",
+    isActive: true,
+    isDeleted: false,
   });
 
   // Generate login tokens
@@ -66,7 +67,7 @@ exports.registerCustomer = catchAsync("registerCustomer", async (req, res, next)
   user.refreshToken = refreshToken;
   await user.save();
 
-  const populatedUser = await User.findById(user._id).populate("roleId", "name status");
+  const populatedUser = await User.findById(user._id).populate("roleId", "_id name");
 
   successResponse({
     res,
@@ -88,7 +89,7 @@ exports.loginStaff = catchAsync("loginStaff", async (req, res, next) => {
   }
 
   // 1. Find User by email, select password, and populate role
-  const user = await User.findOne({ email }).select("+password").populate("roleId", "name status");
+  const user = await User.findOne({ email }).select("+password").populate("roleId", "name");
   if (!user) {
     throw new AppError(MESSAGES.ERROR.UNAUTHORIZED, HTTP_STATUS.UNAUTHORIZED);
   }
@@ -105,8 +106,8 @@ exports.loginStaff = catchAsync("loginStaff", async (req, res, next) => {
   let isMatch = false;
 
   if (isCustomer) {
-    // Find CustomerProfile
-    profile = await CustomerProfile.findOne({ userId: user._id });
+    // Find CustomerProfile (must not be soft-deleted)
+    profile = await CustomerProfile.findOne({ userId: user._id, isDeleted: false });
     if (!profile) {
       throw new AppError(MESSAGES.ERROR.NOT_FOUND, HTTP_STATUS.UNAUTHORIZED);
     }
@@ -118,11 +119,11 @@ exports.loginStaff = catchAsync("loginStaff", async (req, res, next) => {
       throw new AppError(MESSAGES.ERROR.UNAUTHORIZED, HTTP_STATUS.UNAUTHORIZED);
     }
     isMatch = await user.matchPassword(password);
-    
+
     // Fetch staff profile for staff roles other than admin
     const roleName = user.roleId ? user.roleId.name.toLowerCase() : "";
     if (roleName !== "admin") {
-      profile = await StaffProfile.findOne({ userId: user._id });
+      profile = await StaffProfile.findOne({ userId: user._id, isDeleted: false });
     }
   }
 

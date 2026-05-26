@@ -38,7 +38,7 @@ exports.getRoom = catchAsync("getRoom", async (req, res, next) => {
 // @route   POST /api/v1/rooms/post
 // @access  Public
 exports.createRoom = catchAsync("createRoom", async (req, res, next) => {
-  const { roomNumber, roomType, basePrice, bookingStatus, cleaningStatus, isActive, propertyId } = req.body;
+  const { roomNumber, roomType, basePrice, isActive, propertyId } = req.body;
 
   if (!roomNumber || !roomType || !basePrice || !propertyId) {
     throw new AppError("Please provide roomNumber, roomType, basePrice, and propertyId", 400);
@@ -60,8 +60,6 @@ exports.createRoom = catchAsync("createRoom", async (req, res, next) => {
     roomNumber,
     roomType,
     basePrice,
-    bookingStatus,
-    cleaningStatus,
     isActive: isActive !== undefined ? isActive : true,
     propertyId,
   });
@@ -78,7 +76,7 @@ exports.createRoom = catchAsync("createRoom", async (req, res, next) => {
 // @access  Public
 exports.updateRoom = catchAsync("updateRoom", async (req, res, next) => {
   const id = req.params.id || req.body.id;
-  const { roomNumber, roomType, basePrice, bookingStatus, cleaningStatus, isActive, propertyId } = req.body;
+  const { roomNumber, roomType, basePrice, isActive, propertyId } = req.body;
 
   if (!id) {
     throw new AppError("Please provide a room ID", 400);
@@ -98,7 +96,7 @@ exports.updateRoom = catchAsync("updateRoom", async (req, res, next) => {
 
   room = await Room.findByIdAndUpdate(
     id,
-    { roomNumber, roomType, basePrice, bookingStatus, cleaningStatus, isActive, propertyId },
+    { roomNumber, roomType, basePrice, isActive, propertyId },
     { new: true, runValidators: true }
   );
 

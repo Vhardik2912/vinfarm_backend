@@ -19,7 +19,7 @@ exports.protect = async (req, res, next) => {
     const decoded = verifyAccessToken(token);
 
     // Note: User ID is stored in _id per our updated token generation payload
-    const user = await User.findById(decoded._id).populate("roleId", "_id name status");
+    const user = await User.findById(decoded._id).populate("roleId", "_id name");
 
     if (!user || user.isDeleted) {
       return next(new AppError("User no longer exists on the system.", HTTP_STATUS.UNAUTHORIZED));
@@ -34,9 +34,9 @@ exports.protect = async (req, res, next) => {
     const roleName = user.roleId ? user.roleId.name.toLowerCase() : "";
 
     if (roleName === "customer") {
-      profile = await CustomerProfile.findOne({ userId: user._id });
+      profile = await CustomerProfile.findOne({ userId: user._id, isDeleted: false });
     } else if (roleName !== "admin" && roleName !== "") {
-      profile = await StaffProfile.findOne({ userId: user._id });
+      profile = await StaffProfile.findOne({ userId: user._id, isDeleted: false });
     }
 
     req.user = {
@@ -63,7 +63,7 @@ exports.protect = async (req, res, next) => {
       // Verify the token signature is valid and decode the user ID
       const decoded = verifyRefreshToken(refreshToken);
 
-      const user = await User.findById(decoded._id).populate("roleId", "_id name status");
+      const user = await User.findById(decoded._id).populate("roleId", "_id name");
 
       if (!user || user.isDeleted) {
         return next(new AppError("User no longer exists on the system.", HTTP_STATUS.UNAUTHORIZED));
@@ -97,9 +97,9 @@ exports.protect = async (req, res, next) => {
       const roleName = user.roleId ? user.roleId.name.toLowerCase() : "";
 
       if (roleName === "customer") {
-        profile = await CustomerProfile.findOne({ userId: user._id });
+        profile = await CustomerProfile.findOne({ userId: user._id, isDeleted: false });
       } else if (roleName !== "admin" && roleName !== "") {
-        profile = await StaffProfile.findOne({ userId: user._id });
+        profile = await StaffProfile.findOne({ userId: user._id, isDeleted: false });
       }
 
       req.user = {

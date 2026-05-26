@@ -31,9 +31,13 @@ const staffProfileSchema = new mongoose.Schema(
       type: String, // Path of uploaded ID document
       required: [false, VALIDATION_MESSAGES.STAFF.ID_PROOF_REQUIRED],
     },
-    status: {
+    isActive: {
       type: Boolean,
       default: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {

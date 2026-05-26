@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { BOOKING_STATUS, CLEANING_STATUS, ROOM_TYPES, VALIDATION_MESSAGES } = require("../constants/constants");
+const { ROOM_TYPES, VALIDATION_MESSAGES } = require("../constants/constants");
 
 const roomSchema = new mongoose.Schema(
   {
@@ -18,18 +18,6 @@ const roomSchema = new mongoose.Schema(
     basePrice: {
       type: Number,
       required: [true, VALIDATION_MESSAGES.ROOM.PRICE_REQUIRED],
-    },
-    bookingStatus: {
-      type: String,
-      required: [true, VALIDATION_MESSAGES.ROOM.BOOKING_STATUS_REQUIRED],
-      enum: Object.values(BOOKING_STATUS),
-      default: BOOKING_STATUS.AVAILABLE,
-    },
-    cleaningStatus: {
-      type: String,
-      required: [true, VALIDATION_MESSAGES.ROOM.CLEANING_STATUS_REQUIRED],
-      enum: Object.values(CLEANING_STATUS),
-      default: CLEANING_STATUS.CLEAN,
     },
     isActive: {
       type: Boolean,

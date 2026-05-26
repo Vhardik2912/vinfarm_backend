@@ -37,7 +37,7 @@ exports.getRole = catchAsync("getRole", async (req, res, next) => {
 // @route   POST /api/v1/roles/post
 // @access  Public
 exports.createRole = catchAsync("createRole", async (req, res, next) => {
-  const { name, status } = req.body;
+  const { name } = req.body;
   if (!name) {
     throw new AppError("Please provide a role name", 400);
   }
@@ -47,7 +47,7 @@ exports.createRole = catchAsync("createRole", async (req, res, next) => {
     throw new AppError("Role name already exists", 400);
   }
 
-  const role = await Role.create({ name, status });
+  const role = await Role.create({ name });
 
   successResponse({
     res,
@@ -61,7 +61,7 @@ exports.createRole = catchAsync("createRole", async (req, res, next) => {
 // @access  Public
 exports.updateRole = catchAsync("updateRole", async (req, res, next) => {
   const id = req.params.id || req.body.id;
-  const { name, status } = req.body;
+  const { name } = req.body;
 
   if (!id) {
     throw new AppError("Please provide a role ID", 400);
@@ -74,7 +74,7 @@ exports.updateRole = catchAsync("updateRole", async (req, res, next) => {
 
   role = await Role.findByIdAndUpdate(
     id,
-    { name, status },
+    { name },
     { new: true, runValidators: true }
   );
 

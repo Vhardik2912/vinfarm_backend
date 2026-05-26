@@ -1,5 +1,5 @@
 const Joi = require("joi");
-const { ROOM_TYPES, BOOKING_STATUS, CLEANING_STATUS, VALIDATION_MESSAGES } = require("../constants/constants");
+const { ROOM_TYPES, VALIDATION_MESSAGES } = require("../constants/constants");
 
 const createRoomSchema = Joi.object({
   roomNumber: Joi.string()
@@ -22,12 +22,6 @@ const createRoomSchema = Joi.object({
       "number.base": "Base price must be a number",
       "number.positive": "Base price must be a positive number",
     }),
-  bookingStatus: Joi.string()
-    .valid(...Object.values(BOOKING_STATUS))
-    .optional(),
-  cleaningStatus: Joi.string()
-    .valid(...Object.values(CLEANING_STATUS))
-    .optional(),
   isActive: Joi.boolean().optional(),
   propertyId: Joi.string()
     .required()
@@ -43,12 +37,6 @@ const updateRoomSchema = Joi.object({
     .valid(...ROOM_TYPES)
     .optional(),
   basePrice: Joi.number().positive().optional(),
-  bookingStatus: Joi.string()
-    .valid(...Object.values(BOOKING_STATUS))
-    .optional(),
-  cleaningStatus: Joi.string()
-    .valid(...Object.values(CLEANING_STATUS))
-    .optional(),
   isActive: Joi.boolean().optional(),
   propertyId: Joi.string().optional(),
 });

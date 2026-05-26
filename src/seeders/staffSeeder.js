@@ -33,9 +33,7 @@ const seedStaff = async () => {
 
         await StaffProfile.create({
           userId: managerUser._id,
-          roleId: staffRole._id,
           designationId: managerDesignation._id,
-          email: managerEmail,
           joinDate: new Date(),
           salary: 50000,
           idProof: "/uploads/manager_id.pdf",
@@ -61,9 +59,7 @@ const seedStaff = async () => {
 
         await StaffProfile.create({
           userId: receptionistUser._id,
-          roleId: staffRole._id,
           designationId: receptionistDesignation._id,
-          email: receptionistEmail,
           joinDate: new Date(),
           salary: 30000,
           idProof: "/uploads/receptionist_id.pdf",
@@ -89,9 +85,7 @@ const seedStaff = async () => {
 
         await StaffProfile.create({
           userId: driverUser._id,
-          roleId: staffRole._id,
           designationId: driverDesignation._id,
-          email: driverEmail,
           joinDate: new Date(),
           salary: 25000,
           idProof: "/uploads/driver_id.pdf",
@@ -117,9 +111,7 @@ const seedStaff = async () => {
 
         await StaffProfile.create({
           userId: housekeepingUser._id,
-          roleId: staffRole._id,
           designationId: housekeepingDesignation._id,
-          email: housekeepingEmail,
           joinDate: new Date(),
           salary: 20000,
           idProof: "/uploads/housekeeping_id.pdf",
@@ -145,9 +137,7 @@ const seedStaff = async () => {
 
         await StaffProfile.create({
           userId: maintenanceUser._id,
-          roleId: staffRole._id,
           designationId: maintenanceDesignation._id,
-          email: maintenanceEmail,
           joinDate: new Date(),
           salary: 28000,
           idProof: "/uploads/maintenance_id.pdf",
@@ -173,9 +163,7 @@ const seedStaff = async () => {
 
         await StaffProfile.create({
           userId: restaurantUser._id,
-          roleId: staffRole._id,
           designationId: restaurantDesignation._id,
-          email: restaurantEmail,
           joinDate: new Date(),
           salary: 35000,
           idProof: "/uploads/restaurant_id.pdf",

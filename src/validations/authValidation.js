@@ -1,5 +1,6 @@
 const Joi = require("joi");
-const { VALIDATION_MESSAGES, PATTERNS } = require("../constants/constants");
+const { VALIDATION_MESSAGES } = require("../constants/constants");
+const { validatePhoneJoi } = require("./validationHelper");
 
 const loginSchema = Joi.object({
   email: Joi.string()
@@ -32,10 +33,9 @@ const registerCustomerSchema = Joi.object({
       "any.required": VALIDATION_MESSAGES.USER.EMAIL_REQUIRED,
     }),
   phone: Joi.string()
-    .pattern(PATTERNS.PHONE)
+    .custom(validatePhoneJoi)
     .required()
     .messages({
-      "string.pattern.base": "Phone number must be a valid format with optional country code",
       "any.required": VALIDATION_MESSAGES.USER.PHONE_REQUIRED,
     }),
   countryCode: Joi.string().optional().default("India"),

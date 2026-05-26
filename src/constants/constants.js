@@ -2,12 +2,8 @@ const HTTP_STATUS = require("./httpStatus");
 const { MESSAGES, VALIDATION_MESSAGES } = require("./messages");
 const { BOOKING_STATUS, CLEANING_STATUS, ROOM_TYPES } = require("./room");
 const PROPERTY_TYPES = require("./property");
-const { VEHICLE_TYPES, VEHICLE_STATUS } = require("./vehicle");
-const { TRANSPORT_BOOKING_TYPE, TRANSPORT_BOOKING_STATUS } = require("./transport");
-const { MAINTENANCE_ISSUE_TYPES, MAINTENANCE_PRIORITY, MAINTENANCE_STATUS } = require("./maintenance");
 const { JSON_STATUS } = require("./jsonStatus");
 const { ROOM_BOOKING_STATUS, PAYMENT_STATUS, REFUND_STATUS, EXTRA_SERVICES, CUSTOMER_STATUS } = require("./booking");
-const { FARM_EVENT_TYPES, FARM_BOOKING_STATUS, FARM_PAYMENT_STATUS } = require("./farmBooking");
 const PATTERNS = require("./patterns");
 
 module.exports = {
@@ -16,13 +12,6 @@ module.exports = {
   CLEANING_STATUS,
   ROOM_TYPES,
   PROPERTY_TYPES,
-  VEHICLE_TYPES,
-  VEHICLE_STATUS,
-  TRANSPORT_BOOKING_TYPE,
-  TRANSPORT_BOOKING_STATUS,
-  MAINTENANCE_ISSUE_TYPES,
-  MAINTENANCE_PRIORITY,
-  MAINTENANCE_STATUS,
   MESSAGES,
   VALIDATION_MESSAGES,
   JSON_STATUS,
@@ -31,8 +20,5 @@ module.exports = {
   REFUND_STATUS,
   EXTRA_SERVICES,
   CUSTOMER_STATUS,
-  FARM_EVENT_TYPES,
-  FARM_BOOKING_STATUS,
-  FARM_PAYMENT_STATUS,
   PATTERNS,
 };
