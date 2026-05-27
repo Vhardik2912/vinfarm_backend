@@ -46,6 +46,14 @@ const CUSTOMER_STATUS = Object.freeze({
   CANCELLED: "cancelled",
 });
 
+const VEHICLE_BOOKING_STATUS = Object.freeze({
+  PENDING:   "pending",
+  CONFIRMED: "confirmed",
+  ONGOING:   "ongoing",
+  COMPLETED: "completed",
+  CANCELLED: "cancelled",
+});
+
 module.exports = {
   ROOM_TYPE,
   ROOM_BOOKING_STATUS,
@@ -53,4 +61,5 @@ module.exports = {
   REFUND_STATUS,
   EXTRA_SERVICES,
   CUSTOMER_STATUS,
+  VEHICLE_BOOKING_STATUS,
 };

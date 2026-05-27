@@ -69,7 +69,24 @@ const VALIDATION_MESSAGES = Object.freeze({
   CUSTOMER: {
     DOCUMENT_REQUIRED: "Document (ID proof) upload is required",
     STATUS_REQUIRED: "Status is required",
-  }
+  },
+  VEHICLE_BOOKING: {
+    VEHICLE_REQUIRED:  "Vehicle ID is required",
+    PROPERTY_REQUIRED: "Property ID is required",
+    CUSTOMER_REQUIRED: "Customer ID is required",
+    CREATED_BY_REQUIRED: "Created by user ID is required",
+    PICKUP_POINT_REQUIRED: "Pickup point is required",
+    DROP_POINT_REQUIRED:   "Drop point is required",
+    PICKUP_TIME_REQUIRED:  "Pickup time is required",
+    PRICE_REQUIRED:        "Price is required",
+  },
+  VEHICLE_MAINTENANCE: {
+    VEHICLE_REQUIRED: "Vehicle ID is required",
+    CREATED_BY_REQUIRED: "Created by user ID is required",
+    TITLE_REQUIRED: "Title is required",
+    DESCRIPTION_REQUIRED: "Description is required",
+    AMOUNT_REQUIRED: "Amount is required",
+  },
 });
 
 module.exports = {

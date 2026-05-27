@@ -14,7 +14,9 @@ const userRoutes = require("./src/routes/userRoutes");
 const designationRoutes = require("./src/routes/designationRoutes");
 const bookingRoutes = require("./src/routes/bookingRoutes");
 const serviceRoutes = require("./src/routes/serviceRoutes");
-const vehicleRoutes = require("./src/routes/vehicleRoutes");
+const vehicleRoutes        = require("./src/routes/vehicleRoutes");
+const vehicleBookingRoutes = require("./src/routes/vehicleBookingRoutes");
+const vehicleMaintenanceRoutes = require("./src/routes/vehicleMaintenanceRoutes");
 
 
 
@@ -49,7 +51,9 @@ app.use("/api/user", userRoutes);
 app.use("/api/designation", designationRoutes);
 app.use("/api/booking", bookingRoutes);
 app.use("/api/service", serviceRoutes);
-app.use("/api/vehicle", vehicleRoutes);
+app.use("/api/vehicle",         vehicleRoutes);
+app.use("/api/vehicle-booking", vehicleBookingRoutes);
+app.use("/api/vehicle-maintenance", vehicleMaintenanceRoutes);
 
 
 const errorHandler = require("./src/middleware/errorHandler");
