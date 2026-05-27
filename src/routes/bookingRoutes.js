@@ -18,24 +18,21 @@ const {
 
 const router = express.Router();
 
-// ─── Apply auth middleware to all booking routes ──────────────────────────────
-router.use(protect);
-
 // ─── 5 Standard CRUD Routes ───────────────────────────────────────────────────
-router.get("/get", getBookings);
-router.get("/getid/:id", getBooking);
-router.post("/post", validate(createBookingSchema), createBooking);
-router.put("/put/:id", validate(updateBookingSchema), updateBooking);
-router.delete("/delete/:id", cancelBooking);
+router.get("/get", protect, getBookings);
+router.get("/getid/:id", protect, getBooking);
+router.post("/post", protect, validate(createBookingSchema), createBooking);
+router.put("/put/:id", protect, validate(updateBookingSchema), updateBooking);
+router.delete("/delete/:id", protect, cancelBooking);
 
 // ─── Special Booking Actions ──────────────────────────────────────────────────
-router.put("/confirm/:id", confirmBooking);       // Approve pending booking
-router.put("/checkin/:id", checkIn);              // Check-in guest
-router.put("/checkout/:id", checkOut);            // Check-out guest
-router.put("/payment/:id", recordPayment);        // Mark payment as paid
-router.put("/refund/:id", processRefund);         // Process refund
+router.put("/confirm/:id", protect, confirmBooking);       // Approve pending booking
+router.put("/checkin/:id", protect, checkIn);              // Check-in guest
+router.put("/checkout/:id", protect, checkOut);            // Check-out guest
+router.put("/payment/:id", protect, recordPayment);        // Mark payment as paid
+router.put("/refund/:id", protect, processRefund);         // Process refund
 
-// ─── Live Availability ────────────────────────────────────────────────────────
+// ─── Live Availability (Public) ──────────────────────────────────────────────
 router.get("/availability", getRoomAvailability); // ?checkInDate=...&checkOutDate=...
 
 module.exports = router;

@@ -17,18 +17,15 @@ const {
 
 const router = express.Router();
 
-// ─── Auth guard on all routes ──────────────────────────────────
-router.use(protect);
-
 // ─── Standard CRUD ─────────────────────────────────────────────
-router.get("/get",         getVehicleBookings);
-router.get("/getid/:id",   getVehicleBooking);
-router.post("/post",       validate(createVehicleBookingSchema), createVehicleBooking);
-router.put("/put/:id",     validate(updateVehicleBookingSchema), updateVehicleBooking);
-router.delete("/delete/:id", deleteVehicleBooking);
+router.get("/get",         protect, getVehicleBookings);
+router.get("/getid/:id",   protect, getVehicleBooking);
+router.post("/post",       protect, validate(createVehicleBookingSchema), createVehicleBooking);
+router.put("/put/:id",     protect, validate(updateVehicleBookingSchema), updateVehicleBooking);
+router.delete("/delete/:id", protect, deleteVehicleBooking);
 
 // ─── Special Actions ────────────────────────────────────────────
-router.put("/assign/:id",  assignVehicleBooking);       // Assign staff driver
-router.put("/status/:id",  updateVehicleBookingStatus); // Change trip status
+router.put("/assign/:id",  protect, assignVehicleBooking);       // Assign staff driver
+router.put("/status/:id",  protect, updateVehicleBookingStatus); // Change trip status
 
 module.exports = router;

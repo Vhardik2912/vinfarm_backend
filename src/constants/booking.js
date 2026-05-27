@@ -54,6 +54,25 @@ const VEHICLE_BOOKING_STATUS = Object.freeze({
   CANCELLED: "cancelled",
 });
 
+const FOOD_ORDER_STATUS = Object.freeze({
+  PENDING:   "pending",
+  PREPARING: "preparing",
+  DELIVERED: "delivered",
+  CANCELLED: "cancelled",
+});
+
+const MAINTENANCE_STATUS = Object.freeze({
+  PENDING:     "pending",
+  IN_PROGRESS: "in-progress",
+  COMPLETED:   "completed",
+});
+
+const MAINTENANCE_PRIORITY = Object.freeze({
+  LOW:    "low",
+  MEDIUM: "medium",
+  HIGH:   "high",
+});
+
 module.exports = {
   ROOM_TYPE,
   ROOM_BOOKING_STATUS,
@@ -62,4 +81,7 @@ module.exports = {
   EXTRA_SERVICES,
   CUSTOMER_STATUS,
   VEHICLE_BOOKING_STATUS,
+  FOOD_ORDER_STATUS,
+  MAINTENANCE_STATUS,
+  MAINTENANCE_PRIORITY,
 };

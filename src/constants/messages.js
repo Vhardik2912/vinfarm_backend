@@ -87,6 +87,33 @@ const VALIDATION_MESSAGES = Object.freeze({
     DESCRIPTION_REQUIRED: "Description is required",
     AMOUNT_REQUIRED: "Amount is required",
   },
+  RESTAURANT: {
+    PROPERTY_REQUIRED: "Property ID is required",
+    NAME_REQUIRED: "Restaurant name is required",
+    CUISINE_REQUIRED: "Cuisine type is required",
+    DESCRIPTION_REQUIRED: "Description is required",
+  },
+  RESTAURANT_MENU: {
+    RESTAURANT_REQUIRED: "Restaurant ID is required",
+    NAME_REQUIRED: "Item name is required",
+    PRICE_REQUIRED: "Price is required",
+    DESCRIPTION_REQUIRED: "Description is required",
+  },
+  FOOD_ORDER: {
+    CUSTOMER_REQUIRED: "Customer ID is required",
+    RESTAURANT_REQUIRED: "Restaurant ID is required",
+    PROPERTY_REQUIRED: "Property ID is required",
+    ITEMS_REQUIRED: "Order items are required",
+    ITEM_MENU_REQUIRED: "Menu item ID is required",
+    ITEM_PRICE_REQUIRED: "Menu item price is required",
+    ITEM_QUANTITY_REQUIRED: "Menu item quantity is required",
+  },
+  MAINTENANCE: {
+    ROOM_REQUIRED: "Room ID is required",
+    REPORTED_BY_REQUIRED: "Reported by user ID is required",
+    ISSUE_TYPE_REQUIRED: "Issue type is required",
+    DESCRIPTION_REQUIRED: "Description is required",
+  },
 });
 
 module.exports = {

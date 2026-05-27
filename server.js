@@ -17,6 +17,10 @@ const serviceRoutes = require("./src/routes/serviceRoutes");
 const vehicleRoutes        = require("./src/routes/vehicleRoutes");
 const vehicleBookingRoutes = require("./src/routes/vehicleBookingRoutes");
 const vehicleMaintenanceRoutes = require("./src/routes/vehicleMaintenanceRoutes");
+const restaurantRoutes = require("./src/routes/restaurantRoutes");
+const restaurantMenuRoutes = require("./src/routes/restaurantMenuRoutes");
+const foodOrderRoutes = require("./src/routes/foodOrderRoutes");
+const maintenanceRoutes = require("./src/routes/maintenanceRoutes");
 
 
 
@@ -54,6 +58,10 @@ app.use("/api/service", serviceRoutes);
 app.use("/api/vehicle",         vehicleRoutes);
 app.use("/api/vehicle-booking", vehicleBookingRoutes);
 app.use("/api/vehicle-maintenance", vehicleMaintenanceRoutes);
+app.use("/api/restaurant", restaurantRoutes);
+app.use("/api/restaurant-menu", restaurantMenuRoutes);
+app.use("/api/food-order", foodOrderRoutes);
+app.use("/api/maintenance", maintenanceRoutes);
 
 
 const errorHandler = require("./src/middleware/errorHandler");

@@ -7,13 +7,10 @@ const { getVehicles, getVehicle, createVehicle, updateVehicle, deleteVehicle } =
 
 const router = express.Router();
 
-// ─── Apply auth middleware to all vehicle routes ─────────────────────────────────
-router.use(protect);
-
-router.get("/get", getVehicles);
-router.get("/getid/:id", getVehicle);
-router.post("/post", upload.array("document"), validate(createVehicleSchema), createVehicle);
-router.put("/put/:id", upload.array("document"), validate(updateVehicleSchema), updateVehicle);
-router.delete("/delete/:id", deleteVehicle);
+router.get("/get", protect, getVehicles);
+router.get("/getid/:id", protect, getVehicle);
+router.post("/post", protect, upload.array("document"), validate(createVehicleSchema), createVehicle);
+router.put("/put/:id", protect, upload.array("document"), validate(updateVehicleSchema), updateVehicle);
+router.delete("/delete/:id", protect, deleteVehicle);
 
 module.exports = router;

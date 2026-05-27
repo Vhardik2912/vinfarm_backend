@@ -17,24 +17,23 @@ const {
 
 const router = express.Router();
 
-// Apply auth middleware to all vehicle maintenance routes
-router.use(protect);
-
-router.get("/get", getVehicleMaintenances);
-router.get("/getid/:id", getVehicleMaintenance);
+router.get("/get", protect, getVehicleMaintenances);
+router.get("/getid/:id", protect, getVehicleMaintenance);
 router.post(
   "/post",
+  protect,
   upload.single("bill"),
   validate(createVehicleMaintenanceSchema),
   createVehicleMaintenance
 );
 router.put(
   "/put/:id",
+  protect,
   upload.single("bill"),
   validate(updateVehicleMaintenanceSchema),
   updateVehicleMaintenance
 );
-router.put("/resolve/:id", resolveVehicleMaintenance);
-router.delete("/delete/:id", deleteVehicleMaintenance);
+router.put("/resolve/:id", protect, resolveVehicleMaintenance);
+router.delete("/delete/:id", protect, deleteVehicleMaintenance);
 
 module.exports = router;

@@ -4,13 +4,10 @@ const { getDesignations, getDesignation, createDesignation, updateDesignation, d
 
 const router = express.Router();
 
-// ─── Apply auth middleware to all designation routes ──────────────────────────
-router.use(protect);
-
-router.get("/get", getDesignations);
-router.get("/getid/:id", getDesignation);
-router.post("/post", createDesignation);
-router.put("/put/:id", updateDesignation);
-router.delete("/delete/:id", deleteDesignation);
+router.get("/get", protect, getDesignations);
+router.get("/getid/:id", protect, getDesignation);
+router.post("/post", protect, createDesignation);
+router.put("/put/:id", protect, updateDesignation);
+router.delete("/delete/:id", protect, deleteDesignation);
 
 module.exports = router;

@@ -7,13 +7,10 @@ const { getUsers, getUser, createUser, updateUser, deleteUser } = require("../co
 
 const router = express.Router();
 
-// ─── Apply auth middleware to all user routes ─────────────────────────────────
-router.use(protect);
-
-router.get("/get", getUsers);
-router.get("/getid/:id", getUser);
-router.post("/post", upload.single("idProof"), validate(createUserSchema), createUser);
-router.put("/put/:id", upload.single("idProof"), validate(updateUserSchema), updateUser);
-router.delete("/delete/:id", deleteUser);
+router.get("/get", protect, getUsers);
+router.get("/getid/:id", protect, getUser);
+router.post("/post", protect, upload.single("idProof"), validate(createUserSchema), createUser);
+router.put("/put/:id", protect, upload.single("idProof"), validate(updateUserSchema), updateUser);
+router.delete("/delete/:id", protect, deleteUser);
 
 module.exports = router;

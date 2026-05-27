@@ -6,13 +6,10 @@ const { getServices, getService, createService, updateService, deleteService } =
 
 const router = express.Router();
 
-// ─── Apply auth middleware to all service routes ─────────────────────────────────
-router.use(protect);
-
 router.get("/get", getServices);
 router.get("/getid/:id", getService);
-router.post("/post", validate(createServiceSchema), createService);
-router.put("/put/:id", validate(updateServiceSchema), updateService);
-router.delete("/delete/:id", deleteService);
+router.post("/post", protect, validate(createServiceSchema), createService);
+router.put("/put/:id", protect, validate(updateServiceSchema), updateService);
+router.delete("/delete/:id", protect, deleteService);
 
 module.exports = router;

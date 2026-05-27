@@ -19,15 +19,12 @@ const router = express.Router();
 // ─── PUBLIC: Website booking form submission (no auth) ────────────────────────
 router.post("/website-booking", submitWebsiteBooking);
 
-// ─── Apply auth middleware to all customer routes ─────────────────────────────
-router.use(protect);
-
-router.get("/get", getCustomers);
-router.get("/getid/:id", getCustomer);
-router.post("/approve-request/:id", approveWebsiteRequest);
-router.post("/reject-request/:id", rejectWebsiteRequest);
-router.post("/post", upload.single("document"), validate(createCustomerSchema), createCustomer);
-router.put("/put/:id", upload.single("document"), validate(updateCustomerSchema), updateCustomer);
-router.delete("/delete/:id", deleteCustomer);
+router.get("/get", protect, getCustomers);
+router.get("/getid/:id", protect, getCustomer);
+router.post("/approve-request/:id", protect, approveWebsiteRequest);
+router.post("/reject-request/:id", protect, rejectWebsiteRequest);
+router.post("/post", protect, upload.single("document"), validate(createCustomerSchema), createCustomer);
+router.put("/put/:id", protect, upload.single("document"), validate(updateCustomerSchema), updateCustomer);
+router.delete("/delete/:id", protect, deleteCustomer);
 
 module.exports = router;

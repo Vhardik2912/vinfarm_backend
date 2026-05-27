@@ -7,13 +7,10 @@ const { getStaffs, getStaff, createStaff, updateStaff, deleteStaff } = require("
 
 const router = express.Router();
 
-// ─── Apply auth middleware to all staff routes ────────────────────────────────
-router.use(protect);
-
-router.get("/get", getStaffs);
-router.get("/getid/:id", getStaff);
-router.post("/post", upload.single("idProof"), validate(createStaffSchema), createStaff);
-router.put("/put/:id", upload.single("idProof"), validate(updateStaffSchema), updateStaff);
-router.delete("/delete/:id", deleteStaff);
+router.get("/get", protect, getStaffs);
+router.get("/getid/:id", protect, getStaff);
+router.post("/post", protect, upload.single("idProof"), validate(createStaffSchema), createStaff);
+router.put("/put/:id", protect, upload.single("idProof"), validate(updateStaffSchema), updateStaff);
+router.delete("/delete/:id", protect, deleteStaff);
 
 module.exports = router;

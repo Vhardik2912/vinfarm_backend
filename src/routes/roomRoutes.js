@@ -6,13 +6,10 @@ const { getRooms, getRoom, createRoom, updateRoom, deleteRoom } = require("../co
 
 const router = express.Router();
 
-// ─── Apply auth middleware to all room routes ─────────────────────────────────
-router.use(protect);
-
 router.get("/get", getRooms);
 router.get("/getid/:id", getRoom);
-router.post("/post", validate(createRoomSchema), createRoom);
-router.put("/put/:id", validate(updateRoomSchema), updateRoom);
-router.delete("/delete/:id", deleteRoom);
+router.post("/post", protect, validate(createRoomSchema), createRoom);
+router.put("/put/:id", protect, validate(updateRoomSchema), updateRoom);
+router.delete("/delete/:id", protect, deleteRoom);
 
 module.exports = router;
