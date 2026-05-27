@@ -68,7 +68,7 @@ exports.createBooking = catchAsync("createBooking", async (req, res, next) => {
     customerId,
     createdBy,
     bookingSource,
-    accommodation, // { type: "ROOM" | "PROPERTY", refId, name, price, capacity }
+    accommodation, // { type: "ROOM" | "PROPERTY", roomType, refId, name, price, capacity }
     guests,        // { adults, children, totalGuests }
     dates,         // { checkInDate, checkOutDate, actualCheckIn, actualCheckOut }
     pricing,
@@ -92,13 +92,15 @@ exports.createBooking = catchAsync("createBooking", async (req, res, next) => {
     const room = await Room.findOne({ _id: accommodation.refId, isDeleted: false, isActive: true });
     if (!room) throw new AppError("Selected room not found or is not available", 404);
     // Auto-fill snapshot from the real room document
-    accommodation.name  = `${room.roomType} - ${room.roomNumber}`;
-    accommodation.price = accommodation.price ?? room.basePrice;
+    accommodation.roomType = accommodation.roomType || room.roomType || null;
+    accommodation.name     = `${room.roomType} - ${room.roomNumber}`;
+    accommodation.price    = accommodation.price ?? room.basePrice;
     accommodation.capacity = accommodation.capacity ?? 1;
   } else if (accommodation.type === "PROPERTY") {
     const property = await Property.findOne({ _id: accommodation.refId, isDeleted: false, isActive: true });
     if (!property) throw new AppError("Selected property not found or is not available", 404);
     // Auto-fill snapshot from the real property document
+    accommodation.roomType = null; // not applicable for property
     accommodation.name     = accommodation.name || property.name;
     accommodation.price    = accommodation.price;
     accommodation.capacity = accommodation.capacity;
@@ -306,13 +308,15 @@ exports.updateBooking = catchAsync("updateBooking", async (req, res, next) => {
     if (newType === "ROOM") {
       const room = await Room.findOne({ _id: newRefId, isDeleted: false, isActive: true });
       if (!room) throw new AppError("Selected room not found or is not available", 404);
-      // Refresh snapshot name/price from the real room document
-      accommodation.name  = accommodation.name  || `${room.roomType} - ${room.roomNumber}`;
-      accommodation.price = accommodation.price || room.basePrice;
+      // Refresh snapshot name/price/roomType from the real room document
+      accommodation.roomType = accommodation.roomType || room.roomType || null;
+      accommodation.name     = accommodation.name  || `${room.roomType} - ${room.roomNumber}`;
+      accommodation.price    = accommodation.price || room.basePrice;
     } else if (newType === "PROPERTY") {
       const property = await Property.findOne({ _id: newRefId, isDeleted: false, isActive: true });
       if (!property) throw new AppError("Selected property not found or is not available", 404);
-      accommodation.name = accommodation.name || property.name;
+      accommodation.roomType = null; // not applicable for property
+      accommodation.name     = accommodation.name || property.name;
     } else {
       throw new AppError("accommodation.type must be either 'ROOM' or 'PROPERTY'", 400);
     }

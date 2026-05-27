@@ -1,3 +1,10 @@
+const ROOM_TYPE = Object.freeze({
+  FAMILY_VILLA: "FAMILY_VILLA",
+  BACHELOR_SUITE: "BACHELOR_SUITE",
+  LUXURY_TENT: "LUXURY_TENT",
+  VIP_PALACE_ROOM: "VIP_PALACE_ROOM",
+});
+
 const ROOM_BOOKING_STATUS = Object.freeze({
   PENDING: "pending",
   CONFIRMED: "confirmed",
@@ -40,6 +47,7 @@ const CUSTOMER_STATUS = Object.freeze({
 });
 
 module.exports = {
+  ROOM_TYPE,
   ROOM_BOOKING_STATUS,
   PAYMENT_STATUS,
   REFUND_STATUS,

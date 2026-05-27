@@ -5,6 +5,7 @@ const {
   ROOM_BOOKING_STATUS,
   PAYMENT_STATUS,
   REFUND_STATUS,
+  ROOM_TYPE,
 } = require("../constants/booking");
 
 /* ─── Accommodation Snapshot ───────────────── */
@@ -14,6 +15,14 @@ const AccommodationSchema = new Schema(
       type: String,
       enum: ["ROOM", "PROPERTY"],
       required: true,
+    },
+    roomType: {
+      type: String,
+      enum: Object.values(ROOM_TYPE),
+      required: function () {
+        return this.type === "ROOM";
+      },
+      default: null,
     },
     refId: {
       type: Schema.Types.ObjectId,

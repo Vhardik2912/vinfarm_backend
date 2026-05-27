@@ -1,5 +1,5 @@
 const Joi = require("joi");
-const { ROOM_BOOKING_STATUS, PAYMENT_STATUS, REFUND_STATUS } = require("../constants/booking");
+const { ROOM_BOOKING_STATUS, PAYMENT_STATUS, REFUND_STATUS, ROOM_TYPE } = require("../constants/booking");
 
 const createBookingSchema = Joi.object({
   customerId: Joi.string().required(),
@@ -8,6 +8,11 @@ const createBookingSchema = Joi.object({
   
   accommodation: Joi.object({
     type: Joi.string().valid("ROOM", "PROPERTY").required(),
+    roomType: Joi.when("type", {
+      is: "ROOM",
+      then: Joi.string().valid(...Object.values(ROOM_TYPE)).required(),
+      otherwise: Joi.string().valid(...Object.values(ROOM_TYPE)).optional().allow(null),
+    }),
     refId: Joi.string().required(),
     name: Joi.string().required(),
     price: Joi.number().min(0).required(),
@@ -67,6 +72,7 @@ const updateBookingSchema = Joi.object({
 
   accommodation: Joi.object({
     type: Joi.string().valid("ROOM", "PROPERTY").optional(),
+    roomType: Joi.string().valid(...Object.values(ROOM_TYPE)).optional().allow(null),
     refId: Joi.string().optional(),
     name: Joi.string().optional(),
     price: Joi.number().min(0).optional(),
