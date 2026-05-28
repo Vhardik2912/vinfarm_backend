@@ -3,11 +3,6 @@ const { VALIDATION_MESSAGES } = require("../constants/constants");
 
 const vehicleSchema = new mongoose.Schema(
   {
-    propertyId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Property",
-      required: [true, VALIDATION_MESSAGES.VEHICLE.PROPERTY_REQUIRED],
-    },
     vehicleName: {
       type: String,
       required: [true, VALIDATION_MESSAGES.VEHICLE.NAME_REQUIRED],

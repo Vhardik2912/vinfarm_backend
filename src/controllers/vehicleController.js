@@ -1,5 +1,4 @@
 const Vehicle = require("../models/Vehicle");
-const Property = require("../models/Property");
 const { catchAsync, successResponse } = require("../utils/responseHelper");
 const AppError = require("../utils/AppError");
 const fs = require("fs");
@@ -30,12 +29,7 @@ const safeDeleteFiles = (filePaths) => {
 exports.getVehicles = catchAsync("getVehicles", async (req, res, next) => {
   const filter = { isDeleted: false };
   
-  // Optional filter by propertyId
-  if (req.query.propertyId) {
-    filter.propertyId = req.query.propertyId;
-  }
-
-  const vehicles = await Vehicle.find(filter).populate("propertyId", "name type location");
+  const vehicles = await Vehicle.find(filter);
 
   successResponse({
     res,
@@ -52,7 +46,7 @@ exports.getVehicle = catchAsync("getVehicle", async (req, res, next) => {
     throw new AppError("Please provide a vehicle ID", 400);
   }
 
-  const vehicle = await Vehicle.findOne({ _id: id, isDeleted: false }).populate("propertyId", "name type location");
+  const vehicle = await Vehicle.findOne({ _id: id, isDeleted: false });
   if (!vehicle) {
     throw new AppError("Vehicle not found", 404);
   }
@@ -69,21 +63,15 @@ exports.getVehicle = catchAsync("getVehicle", async (req, res, next) => {
 exports.createVehicle = catchAsync("createVehicle", async (req, res, next) => {
   let uploadedPaths = [];
   try {
-    const { propertyId, vehicleName, vehicleType, vehicleNumber, vehicleCapacity, isActive } = req.body;
+    const { vehicleName, vehicleType, vehicleNumber, vehicleCapacity, isActive } = req.body;
 
-    if (!propertyId || !vehicleName || !vehicleType || !vehicleNumber || !vehicleCapacity) {
+    if (!vehicleName || !vehicleType || !vehicleNumber || !vehicleCapacity) {
       throw new AppError("Please provide all required vehicle details", 400);
     }
 
     // Process files if uploaded
     if (req.files && req.files.length > 0) {
       uploadedPaths = req.files.map((file) => `/uploads/${file.filename}`);
-    }
-
-    // Verify property exists
-    const propertyExists = await Property.findOne({ _id: propertyId, isDeleted: false });
-    if (!propertyExists) {
-      throw new AppError("Selected property not found", 404);
     }
 
     // Check if vehicleNumber already exists (not soft deleted)
@@ -93,7 +81,6 @@ exports.createVehicle = catchAsync("createVehicle", async (req, res, next) => {
     }
 
     const vehicle = await Vehicle.create({
-      propertyId,
       vehicleName,
       vehicleType,
       vehicleNumber,
@@ -102,7 +89,7 @@ exports.createVehicle = catchAsync("createVehicle", async (req, res, next) => {
       document: uploadedPaths,
     });
 
-    const populatedVehicle = await Vehicle.findById(vehicle._id).populate("propertyId", "name type location");
+    const populatedVehicle = await Vehicle.findById(vehicle._id);
 
     successResponse({
       res,
@@ -124,7 +111,7 @@ exports.updateVehicle = catchAsync("updateVehicle", async (req, res, next) => {
   let newUploadedPaths = [];
   try {
     const id = req.params.id || req.body.id;
-    const { propertyId, vehicleName, vehicleType, vehicleNumber, vehicleCapacity, isActive, removeDocuments } = req.body;
+    const { vehicleName, vehicleType, vehicleNumber, vehicleCapacity, isActive, removeDocuments } = req.body;
 
     if (!id) {
       throw new AppError("Please provide a vehicle ID", 400);
@@ -133,15 +120,6 @@ exports.updateVehicle = catchAsync("updateVehicle", async (req, res, next) => {
     const vehicle = await Vehicle.findOne({ _id: id, isDeleted: false });
     if (!vehicle) {
       throw new AppError("Vehicle not found", 404);
-    }
-
-    // Verify property exists if propertyId is being updated
-    if (propertyId) {
-      const propertyExists = await Property.findOne({ _id: propertyId, isDeleted: false });
-      if (!propertyExists) {
-        throw new AppError("Selected property not found", 404);
-      }
-      vehicle.propertyId = propertyId;
     }
 
     // Check vehicleNumber unique constraint if it's changing
@@ -177,7 +155,7 @@ exports.updateVehicle = catchAsync("updateVehicle", async (req, res, next) => {
 
     await vehicle.save();
 
-    const populatedVehicle = await Vehicle.findById(vehicle._id).populate("propertyId", "name type location");
+    const populatedVehicle = await Vehicle.findById(vehicle._id);
 
     successResponse({
       res,

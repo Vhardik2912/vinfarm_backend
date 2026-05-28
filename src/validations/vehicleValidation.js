@@ -2,12 +2,6 @@ const Joi = require("joi");
 const { VALIDATION_MESSAGES } = require("../constants/constants");
 
 const createVehicleSchema = Joi.object({
-  propertyId: Joi.string()
-    .required()
-    .messages({
-      "any.required": VALIDATION_MESSAGES.VEHICLE.PROPERTY_REQUIRED,
-      "string.empty": VALIDATION_MESSAGES.VEHICLE.PROPERTY_REQUIRED,
-    }),
   vehicleName: Joi.string()
     .required()
     .messages({
@@ -41,7 +35,6 @@ const createVehicleSchema = Joi.object({
 
 const updateVehicleSchema = Joi.object({
   id: Joi.string().optional(),
-  propertyId: Joi.string().optional(),
   vehicleName: Joi.string().optional(),
   vehicleType: Joi.string().optional(),
   vehicleNumber: Joi.string().optional(),
