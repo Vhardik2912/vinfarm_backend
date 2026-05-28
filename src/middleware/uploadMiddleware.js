@@ -2,8 +2,8 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// Ensure uploads directory exists
-const uploadDir = "uploads";
+// Ensure uploads directory exists (use absolute path to avoid cwd issues)
+const uploadDir = path.join(__dirname, "../../uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -14,17 +14,18 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
-    // Generate unique name: fieldname-timestamp.extension
+    // Generate unique name: fieldname-timestamp-random.extension
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
     cb(
       null,
-      `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
+      `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`
     );
   },
 });
 
 // File filter (accept images and documents like pdf, docx)
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|pdf|doc|docx/;
+  const allowedTypes = /jpeg|jpg|png|webp|pdf|doc|docx/;
   const extname = allowedTypes.test(
     path.extname(file.originalname).toLowerCase()
   );
@@ -33,7 +34,7 @@ const fileFilter = (req, file, cb) => {
   if (extname && mimetype) {
     return cb(null, true);
   } else {
-    cb(new Error("Only images (jpeg/jpg/png) and documents (pdf/doc/docx) are allowed!"));
+    cb(new Error("Only images (jpeg/jpg/png/webp) and documents (pdf/doc/docx) are allowed!"));
   }
 };
 
@@ -45,3 +46,4 @@ const upload = multer({
 });
 
 module.exports = upload;
+
