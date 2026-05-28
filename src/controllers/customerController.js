@@ -392,16 +392,22 @@ exports.submitWebsiteBooking = catchAsync("submitWebsiteBooking", async (req, re
     totalAmount: 0,
   };
 
-  sendBookingEmails(bookingMock, roomMock, customerData)
+  sendBookingEmails(pendingBooking || bookingMock, roomMock, customerData)
     .then((result) => {
       if (result.success) {
-        if (!result.hasSmtpConfig) {
+        if (result.customerMailPreview) {
+          // DEV: Ethereal preview URL
           console.log("📧 [DEV] Customer email preview:", result.customerMailPreview);
-          console.log("📧 [DEV] Admin email preview:   ", result.adminMailPreview);
+        } else {
+          // LIVE: Real SMTP email sent
+          console.log("📧 [LIVE] Booking emails sent to:", customerData.email);
+          console.log("📧 [LIVE] Admin notification sent to:", process.env.VINFARM_ADMIN_EMAIL);
         }
+      } else {
+        console.error("📧 Email send failed:", result.error);
       }
     })
-    .catch(() => { });
+    .catch((err) => { console.error("📧 Email error:", err.message); });
 
   // ── Response ────────────────────────────────────────────────────────────────
   successResponse({

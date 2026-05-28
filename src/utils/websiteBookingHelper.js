@@ -111,14 +111,33 @@ async function createPendingBookingForProfile({
     return existingPending;
   }
 
-  // Find available room
-  const room = await findAvailableRoomForStay(roomType, checkInDate, checkOutDate);
+  // Find available room — with fallback if that type is fully booked
+  let room = await findAvailableRoomForStay(roomType, checkInDate, checkOutDate);
+
+  if (!room) {
+    // Fallback 1: any active room of the requested type
+    room = await Room.findOne({ roomType, isDeleted: false, isActive: true });
+  }
+  if (!room) {
+    // Fallback 2: any active room in the system
+    room = await Room.findOne({ isDeleted: false, isActive: true });
+  }
+
   console.log("Available room:", room);
 
   if (!room) {
-    console.log("No room available");
+    console.log("No room exists in the system at all");
     return null;
   }
+
+  // Map Room schema type → Booking schema enum
+  const roomTypeEnumMap = {
+    "Family":   "FAMILY_VILLA",
+    "Bachelor": "BACHELOR_SUITE",
+    "Tent":     "LUXURY_TENT",
+    "VIP Room": "VIP_PALACE_ROOM",
+  };
+  const mappedRoomType = roomTypeEnumMap[room.roomType] || "FAMILY_VILLA";
 
   // Calculate pricing
   const nights = calcNights(checkInDate, checkOutDate);
@@ -131,6 +150,7 @@ async function createPendingBookingForProfile({
     bookingSource: "SELF",
     accommodation: {
       type: "ROOM",
+      roomType: mappedRoomType,
       refId: room._id,
       name: room.roomNumber,
       price: room.basePrice,
