@@ -4,7 +4,6 @@ const { VEHICLE_BOOKING_STATUS } = require("../constants/booking");
 /* ─── Create Vehicle Booking ─────────────────────────── */
 const createVehicleBookingSchema = Joi.object({
   vehicleId:   Joi.string().required(),
-  propertyId:  Joi.string().required(),
   customerId:  Joi.string().required(),
   createdBy:   Joi.string().optional(),
   assignedTo:  Joi.string().optional().allow(null, ""),
@@ -21,7 +20,6 @@ const createVehicleBookingSchema = Joi.object({
 /* ─── Update Vehicle Booking ─────────────────────────── */
 const updateVehicleBookingSchema = Joi.object({
   vehicleId:   Joi.string().optional(),
-  propertyId:  Joi.string().optional(),
   customerId:  Joi.string().optional(),
   assignedTo:  Joi.string().optional().allow(null, ""),
 

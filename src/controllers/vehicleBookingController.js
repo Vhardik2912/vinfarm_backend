@@ -1,7 +1,6 @@
 const VehicleBooking = require("../models/VehicleBooking");
 const { VEHICLE_BOOKING_STATUS } = require("../constants/booking");
 const Vehicle  = require("../models/Vehicle");
-const Property = require("../models/Property");
 const User     = require("../models/User");
 const { catchAsync, successResponse } = require("../utils/responseHelper");
 const AppError = require("../utils/AppError");
@@ -11,19 +10,17 @@ const { getPagination } = require("../utils/paginationHelper");
 // ─── @route GET /api/vehicle-booking/get?page=1&limit=10
 // ─── @access Private
 exports.getVehicleBookings = catchAsync("getVehicleBookings", async (req, res) => {
-  const { status, customerId, vehicleId, propertyId } = req.query;
+  const { status, customerId, vehicleId } = req.query;
   const { skip, limit, buildMeta } = getPagination(req.query);
 
   const filter = { isDeleted: false };
   if (status)     filter.status     = status;
   if (customerId) filter.customerId = customerId;
   if (vehicleId)  filter.vehicleId  = vehicleId;
-  if (propertyId) filter.propertyId = propertyId;
 
   const total = await VehicleBooking.countDocuments(filter);
   const bookings = await VehicleBooking.find(filter)
     .populate("vehicleId",  "vehicleName vehicleType vehicleNumber")
-    .populate("propertyId", "name")
     .populate("customerId", "name email phone")
     .populate("createdBy",  "name email")
     .populate("assignedTo", "name email phone")
@@ -42,7 +39,6 @@ exports.getVehicleBooking = catchAsync("getVehicleBooking", async (req, res) => 
 
   const booking = await VehicleBooking.findOne({ _id: id, isDeleted: false })
     .populate("vehicleId",  "vehicleName vehicleType vehicleNumber")
-    .populate("propertyId", "name")
     .populate("customerId", "name email phone")
     .populate("createdBy",  "name email")
     .populate("assignedTo", "name email phone");
@@ -57,7 +53,6 @@ exports.getVehicleBooking = catchAsync("getVehicleBooking", async (req, res) => 
 exports.createVehicleBooking = catchAsync("createVehicleBooking", async (req, res) => {
   const {
     vehicleId,
-    propertyId,
     customerId,
     assignedTo,
     pickupPoint,
@@ -71,9 +66,6 @@ exports.createVehicleBooking = catchAsync("createVehicleBooking", async (req, re
   // ─── Validate References ───────────────────────────────────────
   const vehicle = await Vehicle.findOne({ _id: vehicleId, isDeleted: false, isActive: true });
   if (!vehicle) throw new AppError("Vehicle not found or inactive", 404);
-
-  const property = await Property.findOne({ _id: propertyId, isDeleted: false, isActive: true });
-  if (!property) throw new AppError("Property not found or inactive", 404);
 
   const customer = await User.findById(customerId);
   if (!customer) throw new AppError("Customer not found", 404);
@@ -107,7 +99,6 @@ exports.createVehicleBooking = catchAsync("createVehicleBooking", async (req, re
 
   const booking = await VehicleBooking.create({
     vehicleId,
-    propertyId,
     customerId,
     createdBy:  req.body.createdBy || req.user._id,
     assignedTo: assignedTo || null,
@@ -121,7 +112,6 @@ exports.createVehicleBooking = catchAsync("createVehicleBooking", async (req, re
 
   const populated = await VehicleBooking.findById(booking._id)
     .populate("vehicleId",  "vehicleName vehicleType vehicleNumber")
-    .populate("propertyId", "name")
     .populate("customerId", "name email phone")
     .populate("createdBy",  "name email")
     .populate("assignedTo", "name email phone");
@@ -143,12 +133,11 @@ exports.updateVehicleBooking = catchAsync("updateVehicleBooking", async (req, re
   }
 
   const {
-    vehicleId, propertyId, customerId, assignedTo,
+    vehicleId, customerId, assignedTo,
     pickupPoint, dropPoint, pickupTime, dropTime, price, status,
   } = req.body;
 
   if (vehicleId)   booking.vehicleId   = vehicleId;
-  if (propertyId)  booking.propertyId  = propertyId;
   if (customerId)  booking.customerId  = customerId;
   if (assignedTo !== undefined) booking.assignedTo = assignedTo || null;
   if (pickupPoint) booking.pickupPoint = pickupPoint;
@@ -162,7 +151,6 @@ exports.updateVehicleBooking = catchAsync("updateVehicleBooking", async (req, re
 
   const populated = await VehicleBooking.findById(booking._id)
     .populate("vehicleId",  "vehicleName vehicleType vehicleNumber")
-    .populate("propertyId", "name")
     .populate("customerId", "name email phone")
     .populate("createdBy",  "name email")
     .populate("assignedTo", "name email phone");

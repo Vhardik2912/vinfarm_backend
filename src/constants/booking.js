@@ -47,30 +47,30 @@ const CUSTOMER_STATUS = Object.freeze({
 });
 
 const VEHICLE_BOOKING_STATUS = Object.freeze({
-  PENDING:   "pending",
+  PENDING: "pending",
   CONFIRMED: "confirmed",
-  ONGOING:   "ongoing",
+  ONGOING: "ongoing",
   COMPLETED: "completed",
   CANCELLED: "cancelled",
 });
 
 const FOOD_ORDER_STATUS = Object.freeze({
-  PENDING:   "pending",
+  PENDING: "pending",
   PREPARING: "preparing",
   DELIVERED: "delivered",
   CANCELLED: "cancelled",
 });
 
 const MAINTENANCE_STATUS = Object.freeze({
-  PENDING:     "pending",
+  PENDING: "pending",
   IN_PROGRESS: "in-progress",
-  COMPLETED:   "completed",
+  COMPLETED: "completed",
 });
 
 const MAINTENANCE_PRIORITY = Object.freeze({
-  LOW:    "low",
+  LOW: "low",
   MEDIUM: "medium",
-  HIGH:   "high",
+  HIGH: "high",
 });
 
 module.exports = {

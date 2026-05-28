@@ -15,11 +15,6 @@ const vehicleBookingSchema = new Schema(
       required: [true, VM.VEHICLE_REQUIRED],
     },
 
-    propertyId: {
-      type: Schema.Types.ObjectId,
-      ref: "Property",
-      required: [true, VM.PROPERTY_REQUIRED],
-    },
 
     customerId: {
       type: Schema.Types.ObjectId,
