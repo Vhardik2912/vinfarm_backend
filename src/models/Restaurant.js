@@ -6,11 +6,6 @@ const RM = VALIDATION_MESSAGES.RESTAURANT;
 
 const restaurantSchema = new Schema(
   {
-    propertyId: {
-      type: Schema.Types.ObjectId,
-      ref: "Property",
-      required: [true, RM.PROPERTY_REQUIRED],
-    },
     name: {
       type: String,
       required: [true, RM.NAME_REQUIRED],

@@ -32,11 +32,7 @@ exports.getRestaurantMenus = catchAsync("getRestaurantMenus", async (req, res, n
   const menus = await RestaurantMenu.find(filter)
     .populate({
       path: "restaurantId",
-      select: "name cuisineType propertyId",
-      populate: {
-        path: "propertyId",
-        select: "name type location",
-      },
+      select: "name cuisineType",
     })
     .sort({ createdAt: -1 })
     .skip(skip)
@@ -55,11 +51,7 @@ exports.getRestaurantMenu = catchAsync("getRestaurantMenu", async (req, res, nex
   const menu = await RestaurantMenu.findOne({ _id: id, isDeleted: false })
     .populate({
       path: "restaurantId",
-      select: "name cuisineType propertyId",
-      populate: {
-        path: "propertyId",
-        select: "name type location",
-      },
+      select: "name cuisineType",
     });
 
   if (!menu) throw new AppError("Menu item not found", 404);
@@ -103,11 +95,7 @@ exports.createRestaurantMenu = catchAsync("createRestaurantMenu", async (req, re
     const populatedMenu = await RestaurantMenu.findById(menu._id)
       .populate({
         path: "restaurantId",
-        select: "name cuisineType propertyId",
-        populate: {
-          path: "propertyId",
-          select: "name type location",
-        },
+        select: "name cuisineType",
       });
 
     successResponse({
@@ -171,11 +159,7 @@ exports.updateRestaurantMenu = catchAsync("updateRestaurantMenu", async (req, re
     const populatedMenu = await RestaurantMenu.findById(menu._id)
       .populate({
         path: "restaurantId",
-        select: "name cuisineType propertyId",
-        populate: {
-          path: "propertyId",
-          select: "name type location",
-        },
+        select: "name cuisineType",
       });
 
     successResponse({

@@ -88,7 +88,6 @@ const VALIDATION_MESSAGES = Object.freeze({
     AMOUNT_REQUIRED: "Amount is required",
   },
   RESTAURANT: {
-    PROPERTY_REQUIRED: "Property ID is required",
     NAME_REQUIRED: "Restaurant name is required",
     CUISINE_REQUIRED: "Cuisine type is required",
     DESCRIPTION_REQUIRED: "Description is required",

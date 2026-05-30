@@ -1,5 +1,4 @@
 const Restaurant = require("../models/Restaurant");
-const Property = require("../models/Property");
 const { catchAsync, successResponse } = require("../utils/responseHelper");
 const AppError = require("../utils/AppError");
 const { getPagination } = require("../utils/paginationHelper");
@@ -8,17 +7,15 @@ const { getPagination } = require("../utils/paginationHelper");
 // @route   GET /api/restaurant/get
 // @access  Private
 exports.getRestaurants = catchAsync("getRestaurants", async (req, res, next) => {
-  const { propertyId, isVeg, isActive } = req.query;
+  const { isVeg, isActive } = req.query;
   const { skip, limit, buildMeta } = getPagination(req.query);
 
   const filter = { isDeleted: false };
-  if (propertyId) filter.propertyId = propertyId;
   if (isVeg !== undefined) filter.isVeg = isVeg === "true";
   if (isActive !== undefined) filter.isActive = isActive === "true";
 
   const total = await Restaurant.countDocuments(filter);
   const restaurants = await Restaurant.find(filter)
-    .populate("propertyId", "name type location")
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);
@@ -33,8 +30,7 @@ exports.getRestaurant = catchAsync("getRestaurant", async (req, res, next) => {
   const id = req.params.id || req.body.id || req.query.id;
   if (!id) throw new AppError("Please provide a restaurant ID", 400);
 
-  const restaurant = await Restaurant.findOne({ _id: id, isDeleted: false })
-    .populate("propertyId", "name type location");
+  const restaurant = await Restaurant.findOne({ _id: id, isDeleted: false });
 
   if (!restaurant) throw new AppError("Restaurant not found", 404);
 
@@ -45,20 +41,13 @@ exports.getRestaurant = catchAsync("getRestaurant", async (req, res, next) => {
 // @route   POST /api/restaurant/post
 // @access  Private
 exports.createRestaurant = catchAsync("createRestaurant", async (req, res, next) => {
-  const { propertyId, name, description, cuisineType, isVeg, isActive } = req.body;
+  const { name, description, cuisineType, isVeg, isActive } = req.body;
 
-  if (!propertyId || !name || !description || !cuisineType) {
+  if (!name || !description || !cuisineType) {
     throw new AppError("Please provide all required restaurant details", 400);
   }
 
-  // Verify property exists
-  const propertyExists = await Property.findOne({ _id: propertyId, isDeleted: false });
-  if (!propertyExists) {
-    throw new AppError("Selected property not found", 404);
-  }
-
   const restaurant = await Restaurant.create({
-    propertyId,
     name,
     description,
     cuisineType,
@@ -66,14 +55,11 @@ exports.createRestaurant = catchAsync("createRestaurant", async (req, res, next)
     isActive: isActive !== undefined ? isActive : true,
   });
 
-  const populatedRestaurant = await Restaurant.findById(restaurant._id)
-    .populate("propertyId", "name type location");
-
   successResponse({
     res,
     statusCode: 201,
     message: "Restaurant added successfully",
-    data: populatedRestaurant,
+    data: restaurant,
   });
 });
 
@@ -87,16 +73,7 @@ exports.updateRestaurant = catchAsync("updateRestaurant", async (req, res, next)
   const restaurant = await Restaurant.findOne({ _id: id, isDeleted: false });
   if (!restaurant) throw new AppError("Restaurant not found", 404);
 
-  const { propertyId, name, description, cuisineType, isVeg, isActive } = req.body;
-
-  // Verify property exists if propertyId is being updated
-  if (propertyId) {
-    const propertyExists = await Property.findOne({ _id: propertyId, isDeleted: false });
-    if (!propertyExists) {
-      throw new AppError("Selected property not found", 404);
-    }
-    restaurant.propertyId = propertyId;
-  }
+  const { name, description, cuisineType, isVeg, isActive } = req.body;
 
   if (name) restaurant.name = name;
   if (description) restaurant.description = description;
@@ -106,13 +83,10 @@ exports.updateRestaurant = catchAsync("updateRestaurant", async (req, res, next)
 
   await restaurant.save();
 
-  const populatedRestaurant = await Restaurant.findById(restaurant._id)
-    .populate("propertyId", "name type location");
-
   successResponse({
     res,
     message: "Restaurant updated successfully",
-    data: populatedRestaurant,
+    data: restaurant,
   });
 });
 

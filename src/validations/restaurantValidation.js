@@ -1,7 +1,6 @@
 const Joi = require("joi");
 
 const createRestaurantSchema = Joi.object({
-  propertyId: Joi.string().required(),
   name: Joi.string().trim().required(),
   description: Joi.string().trim().required(),
   cuisineType: Joi.string().trim().required(),
@@ -10,7 +9,6 @@ const createRestaurantSchema = Joi.object({
 });
 
 const updateRestaurantSchema = Joi.object({
-  propertyId: Joi.string().optional(),
   name: Joi.string().trim().optional(),
   description: Joi.string().trim().optional(),
   cuisineType: Joi.string().trim().optional(),
