@@ -11,7 +11,6 @@ const foodOrderItemValidationSchema = Joi.object({
 const createFoodOrderSchema = Joi.object({
   customerId: Joi.string().required(),
   restaurantId: Joi.string().required(),
-  propertyId: Joi.string().required(),
   items: Joi.array().items(foodOrderItemValidationSchema).min(1).required(),
   orderStatus: Joi.string().valid(...Object.values(FOOD_ORDER_STATUS)).optional(),
   paymentStatus: Joi.string().valid(...Object.values(PAYMENT_STATUS)).optional(),
@@ -22,7 +21,6 @@ const createFoodOrderSchema = Joi.object({
 const updateFoodOrderSchema = Joi.object({
   customerId: Joi.string().optional(),
   restaurantId: Joi.string().optional(),
-  propertyId: Joi.string().optional(),
   items: Joi.array().items(foodOrderItemValidationSchema).min(1).optional(),
   orderStatus: Joi.string().valid(...Object.values(FOOD_ORDER_STATUS)).optional(),
   paymentStatus: Joi.string().valid(...Object.values(PAYMENT_STATUS)).optional(),

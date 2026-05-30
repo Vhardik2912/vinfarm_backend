@@ -1,7 +1,6 @@
 const FoodOrder = require("../models/FoodOrder");
 const Restaurant = require("../models/Restaurant");
 const RestaurantMenu = require("../models/RestaurantMenu");
-const Property = require("../models/Property");
 const User = require("../models/User");
 const { catchAsync, successResponse } = require("../utils/responseHelper");
 const AppError = require("../utils/AppError");
@@ -12,13 +11,12 @@ const { FOOD_ORDER_STATUS, PAYMENT_STATUS } = require("../constants/constants");
 // @route   GET /api/food-order/get
 // @access  Private
 exports.getFoodOrders = catchAsync("getFoodOrders", async (req, res, next) => {
-  const { customerId, restaurantId, propertyId, orderStatus, paymentStatus } = req.query;
+  const { customerId, restaurantId, orderStatus, paymentStatus } = req.query;
   const { skip, limit, buildMeta } = getPagination(req.query);
 
   const filter = { isDeleted: false };
   if (customerId) filter.customerId = customerId;
   if (restaurantId) filter.restaurantId = restaurantId;
-  if (propertyId) filter.propertyId = propertyId;
   if (orderStatus) filter.orderStatus = orderStatus;
   if (paymentStatus) filter.paymentStatus = paymentStatus;
 
@@ -26,7 +24,6 @@ exports.getFoodOrders = catchAsync("getFoodOrders", async (req, res, next) => {
   const orders = await FoodOrder.find(filter)
     .populate("customerId", "name email phone")
     .populate("restaurantId", "name cuisineType")
-    .populate("propertyId", "name type location")
     .populate("items.menuId", "name price isVeg image")
     .sort({ createdAt: -1 })
     .skip(skip)
@@ -45,7 +42,6 @@ exports.getFoodOrder = catchAsync("getFoodOrder", async (req, res, next) => {
   const order = await FoodOrder.findOne({ _id: id, isDeleted: false })
     .populate("customerId", "name email phone")
     .populate("restaurantId", "name cuisineType")
-    .populate("propertyId", "name type location")
     .populate("items.menuId", "name price isVeg image");
 
   if (!order) throw new AppError("Food order not found", 404);
@@ -57,9 +53,9 @@ exports.getFoodOrder = catchAsync("getFoodOrder", async (req, res, next) => {
 // @route   POST /api/food-order/post
 // @access  Private
 exports.createFoodOrder = catchAsync("createFoodOrder", async (req, res, next) => {
-  const { customerId, restaurantId, propertyId, items, orderStatus, paymentStatus, specialRequest, isActive } = req.body;
+  const { customerId, restaurantId, items, orderStatus, paymentStatus, specialRequest, isActive } = req.body;
 
-  if (!customerId || !restaurantId || !propertyId || !items || items.length === 0) {
+  if (!customerId || !restaurantId || !items || items.length === 0) {
     throw new AppError("Please provide all required food order details", 400);
   }
 
@@ -75,13 +71,7 @@ exports.createFoodOrder = catchAsync("createFoodOrder", async (req, res, next) =
     throw new AppError("Selected restaurant not found", 404);
   }
 
-  // 3. Verify property exists
-  const propertyExists = await Property.findOne({ _id: propertyId, isDeleted: false });
-  if (!propertyExists) {
-    throw new AppError("Selected property not found", 404);
-  }
-
-  // 4. Populate and snapshot prices of items from DB to prevent client-side price tampering
+  // 3. Populate and snapshot prices of items from DB to prevent client-side price tampering
   const snapshottedItems = [];
   for (const item of items) {
     const menuItem = await RestaurantMenu.findOne({ _id: item.menuId, restaurantId, isDeleted: false });
@@ -100,7 +90,6 @@ exports.createFoodOrder = catchAsync("createFoodOrder", async (req, res, next) =
   const order = await FoodOrder.create({
     customerId,
     restaurantId,
-    propertyId,
     items: snapshottedItems,
     orderStatus: orderStatus || FOOD_ORDER_STATUS.PENDING,
     paymentStatus: paymentStatus || PAYMENT_STATUS.PENDING,
@@ -111,7 +100,6 @@ exports.createFoodOrder = catchAsync("createFoodOrder", async (req, res, next) =
   const populatedOrder = await FoodOrder.findById(order._id)
     .populate("customerId", "name email phone")
     .populate("restaurantId", "name cuisineType")
-    .populate("propertyId", "name type location")
     .populate("items.menuId", "name price isVeg image");
 
   successResponse({
@@ -132,7 +120,7 @@ exports.updateFoodOrder = catchAsync("updateFoodOrder", async (req, res, next) =
   const order = await FoodOrder.findOne({ _id: id, isDeleted: false });
   if (!order) throw new AppError("Food order not found", 404);
 
-  const { customerId, restaurantId, propertyId, items, orderStatus, paymentStatus, specialRequest, isActive } = req.body;
+  const { customerId, restaurantId, items, orderStatus, paymentStatus, specialRequest, isActive } = req.body;
 
   // Verify customer exists if updating
   if (customerId) {
@@ -146,13 +134,6 @@ exports.updateFoodOrder = catchAsync("updateFoodOrder", async (req, res, next) =
     const restaurantExists = await Restaurant.findOne({ _id: restaurantId, isDeleted: false });
     if (!restaurantExists) throw new AppError("Selected restaurant not found", 404);
     order.restaurantId = restaurantId;
-  }
-
-  // Verify property exists if updating
-  if (propertyId) {
-    const propertyExists = await Property.findOne({ _id: propertyId, isDeleted: false });
-    if (!propertyExists) throw new AppError("Selected property not found", 404);
-    order.propertyId = propertyId;
   }
 
   // Re-snapshot items if updating
@@ -185,7 +166,6 @@ exports.updateFoodOrder = catchAsync("updateFoodOrder", async (req, res, next) =
   const populatedOrder = await FoodOrder.findById(order._id)
     .populate("customerId", "name email phone")
     .populate("restaurantId", "name cuisineType")
-    .populate("propertyId", "name type location")
     .populate("items.menuId", "name price isVeg image");
 
   successResponse({
@@ -215,7 +195,6 @@ exports.updateOrderStatus = catchAsync("updateOrderStatus", async (req, res, nex
   const populatedOrder = await FoodOrder.findById(order._id)
     .populate("customerId", "name email phone")
     .populate("restaurantId", "name cuisineType")
-    .populate("propertyId", "name type location")
     .populate("items.menuId", "name price isVeg image");
 
   successResponse({
@@ -245,7 +224,6 @@ exports.updatePaymentStatus = catchAsync("updatePaymentStatus", async (req, res,
   const populatedOrder = await FoodOrder.findById(order._id)
     .populate("customerId", "name email phone")
     .populate("restaurantId", "name cuisineType")
-    .populate("propertyId", "name type location")
     .populate("items.menuId", "name price isVeg image");
 
   successResponse({

@@ -42,11 +42,6 @@ const foodOrderSchema = new Schema(
       ref: "Restaurant",
       required: [true, FO.RESTAURANT_REQUIRED],
     },
-    propertyId: {
-      type: Schema.Types.ObjectId,
-      ref: "Property",
-      required: [true, FO.PROPERTY_REQUIRED],
-    },
     items: {
       type: [foodOrderItemSchema],
       required: [true, FO.ITEMS_REQUIRED],

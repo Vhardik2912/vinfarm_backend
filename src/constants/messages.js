@@ -101,7 +101,6 @@ const VALIDATION_MESSAGES = Object.freeze({
   FOOD_ORDER: {
     CUSTOMER_REQUIRED: "Customer ID is required",
     RESTAURANT_REQUIRED: "Restaurant ID is required",
-    PROPERTY_REQUIRED: "Property ID is required",
     ITEMS_REQUIRED: "Order items are required",
     ITEM_MENU_REQUIRED: "Menu item ID is required",
     ITEM_PRICE_REQUIRED: "Menu item price is required",
