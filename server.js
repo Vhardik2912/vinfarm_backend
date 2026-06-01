@@ -21,6 +21,7 @@ const restaurantRoutes = require("./src/routes/restaurantRoutes");
 const restaurantMenuRoutes = require("./src/routes/restaurantMenuRoutes");
 const foodOrderRoutes = require("./src/routes/foodOrderRoutes");
 const maintenanceRoutes = require("./src/routes/maintenanceRoutes");
+const housekeepingRoutes = require("./src/routes/housekeepingRoutes");
 
 
 
@@ -62,6 +63,7 @@ app.use("/api/restaurant", restaurantRoutes);
 app.use("/api/restaurant-menu", restaurantMenuRoutes);
 app.use("/api/food-order", foodOrderRoutes);
 app.use("/api/maintenance", maintenanceRoutes);
+app.use("/api/housekeeping", housekeepingRoutes);
 
 
 const errorHandler = require("./src/middleware/errorHandler");

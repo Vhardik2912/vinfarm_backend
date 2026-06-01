@@ -112,6 +112,12 @@ const VALIDATION_MESSAGES = Object.freeze({
     ISSUE_TYPE_REQUIRED: "Issue type is required",
     DESCRIPTION_REQUIRED: "Description is required",
   },
+  HOUSEKEEPING: {
+    ROOM_REQUIRED: "Room ID is required",
+    TASK_TYPE_REQUIRED: "Task type is required",
+    SCHEDULED_DATE_REQUIRED: "Scheduled date is required",
+    ASSIGNED_BY_REQUIRED: "Assigned by user ID is required",
+  },
 });
 
 module.exports = {
