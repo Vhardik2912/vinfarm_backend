@@ -76,7 +76,7 @@ exports.createRoom = catchAsync("createRoom", async (req, res, next) => {
 // @access  Public
 exports.updateRoom = catchAsync("updateRoom", async (req, res, next) => {
   const id = req.params.id || req.body.id;
-  const { roomNumber, roomType, basePrice, isActive, propertyId } = req.body;
+  const { roomNumber, roomType, basePrice, isActive, propertyId, bookingStatus, cleaningStatus } = req.body;
 
   if (!id) {
     throw new AppError("Please provide a room ID", 400);
@@ -94,9 +94,13 @@ exports.updateRoom = catchAsync("updateRoom", async (req, res, next) => {
     }
   }
 
+  const updateFields = { roomNumber, roomType, basePrice, isActive, propertyId };
+  if (bookingStatus !== undefined) updateFields.bookingStatus = bookingStatus;
+  if (cleaningStatus !== undefined) updateFields.cleaningStatus = cleaningStatus;
+
   room = await Room.findByIdAndUpdate(
     id,
-    { roomNumber, roomType, basePrice, isActive, propertyId },
+    updateFields,
     { new: true, runValidators: true }
   );
 
